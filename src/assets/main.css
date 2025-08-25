@@ -1,0 +1,138 @@
+@import './base.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Medical Research Tool Theme */
+:root {
+  /* Light theme colors */
+  --background: #ffffff;
+  --background-soft: #f8fafc;
+  --background-mute: #f1f5f9;
+  --border: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --accent: #0ea5e9;
+  --accent-hover: #0284c7;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f172a;
+    --background-soft: #1e293b;
+    --background-mute: #334155;
+    --border: #475569;
+    --border-hover: #64748b;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent-hover: #0ea5e9;
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --danger: #f87171;
+  }
+}
+
+/* Base layer customizations */
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-white text-gray-900 font-sans antialiased;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-3xl lg:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl lg:text-3xl;
+  }
+
+  h3 {
+    @apply text-xl lg:text-2xl;
+  }
+}
+
+/* Component layer */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-100 text-secondary-900 hover:bg-secondary-200 focus-visible:ring-secondary-500;
+  }
+
+  .btn-outline {
+    @apply border border-secondary-300 bg-transparent text-secondary-700 hover:bg-secondary-50 focus-visible:ring-secondary-500;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900 focus-visible:ring-secondary-500;
+  }
+
+  .card {
+    @apply rounded-2xl border bg-white p-6 shadow-soft;
+  }
+
+  .input {
+    @apply flex h-12 w-full rounded-xl border border-secondary-300 bg-white px-3 py-2 text-sm placeholder:text-secondary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .paper-card {
+    @apply bg-white rounded-2xl border border-secondary-200 p-6 shadow-soft hover:shadow-medium transition-all duration-200;
+  }
+
+  .action-button {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  }
+
+  .action-button-primary {
+    @apply border-secondary-300 bg-white text-secondary-700 hover:bg-secondary-50 focus-visible:ring-secondary-500;
+  }
+
+  .suggestion-card {
+    @apply bg-primary-50 rounded-2xl p-4 border border-primary-200;
+  }
+}
+
+/* Utility layer */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
