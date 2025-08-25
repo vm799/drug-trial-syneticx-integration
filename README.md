@@ -1,6 +1,6 @@
 # MedResearch AI - Enterprise Medical Research Chatbot
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/vm799/Drug-trial-bot)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/vm799/drug-trial-synetixc-integration)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
 [![Vue](https://img.shields.io/badge/vue-3.5.17-brightgreen.svg)](https://vuejs.org/)
@@ -52,8 +52,8 @@ MedResearch AI transforms medical research by providing an intelligent chatbot t
 
 ```bash
 # Clone the repository
-git clone https://github.com/vm799/Drug-trial-bot.git
-cd Drug-trial-bot
+git clone https://github.com/vm799/drug-trial-synetixc-integration.git
+cd drug-trial-synetixc-integration
 
 # Run setup script
 npm run setup
@@ -73,20 +73,20 @@ npm run dev:fullstack
 - **Health Check**: http://localhost:3001/health
 - **API Documentation**: http://localhost:3001/docs (if enabled)
 
-## ���� Architecture
+## 🏗️ Architecture
 
 ### System Overview
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   External      │
-│   (Vue 3)       │◄──►│  (Node.js)      │◄──►│   Services      │
-│                 │    │                 │    │                 │
-│ • Vue 3.5.17    │    │ • Express.js    │    │ • OpenAI API    │
-│ • TypeScript    │    │ • MongoDB       │    │ • PubMed        │
-│ • Tailwind CSS  │    │ • Socket.IO     │    │ • Neon DB       │
-│ • Responsive UI │    │ • JWT Auth      │    │ • Sentry        │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌────────────────────────────┐    ┌────────────────────────────┐    ┌────────────────────────────┐
+│   Frontend                │    │    Backend                 │    │   External                │
+│   (Vue 3 + Vite + TS)     │◄──►│  (Node.js + Express)      │◄──►│   Services                │
+│                           │    │                            │    │                            │
+│ • Vue 3.5.17              │    │ • Express.js 4.18          │    │ • OpenAI API              │
+│ • TypeScript 5.8          │    │ • MongoDB 8.0 + Mongoose   │    │ • PubMed                  │
+│ • Tailwind CSS 3.4.11     │    │ • Socket.IO                │    │ • ClinicalTrials.gov       │
+│ • Responsive UI           │    │ • JWT Auth                 │    │ • Neon DB                  │
+└────────────────────────────┘    └────────────────────────────┘    └────────────────────────────┘
 ```
 
 ### Technology Stack
@@ -127,8 +127,8 @@ npm run dev:fullstack
 1. **Clone and Install**
 
    ```bash
-   git clone https://github.com/vm799/Drug-trial-bot.git
-   cd Drug-trial-bot
+   git clone https://github.com/vm799/drug-trial-synetixc-integration.git
+   cd drug-trial-synetixc-integration
    npm install
    cd server && npm install && cd ..
    ```
@@ -794,7 +794,6 @@ app.use(
     },
     hsts: { maxAge: 31536000, includeSubDomains: true },
   }),
-)
 
 app.use(
   cors({
