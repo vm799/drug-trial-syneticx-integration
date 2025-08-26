@@ -264,15 +264,22 @@ const formatDate = computed(() => {
 
 // Initialize the application
 const initializeApp = async () => {
+  // Check if we're in development (localhost) or production
+  const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+
+  if (!isDevelopment) {
+    // In production, start with offline mode since backend may not be available
+    console.log('🌐 Production environment detected - starting in offline mode')
+    apiStatus.value = 'offline'
+    return
+  }
+
   try {
-    // Try to check if API is available
+    // Only try to connect to API in development
     apiStatus.value = 'checking'
+    const baseURL = 'http://localhost:3001'
 
-    // Check if we're in development (localhost) or production
-    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    const baseURL = isDevelopment ? 'http://localhost:3001' : '/api'
-
-    console.log(`🔍 Checking API availability at: ${baseURL}`)
+    console.log(`🔍 Development mode - checking API at: ${baseURL}`)
 
     const response = await fetch(`${baseURL}/health`, {
       method: 'GET',
