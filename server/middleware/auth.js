@@ -4,6 +4,37 @@ import logger from '../utils/logger.js'
 
 const authMiddleware = async (req, res, next) => {
   try {
+    // Development mode bypass - create mock user when no JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      logger.warn('Running in development mode - bypassing authentication')
+      req.user = {
+        _id: 'dev-user-123',
+        email: 'dev@example.com',
+        firstName: 'Dev',
+        lastName: 'User',
+        fullName: 'Dev User',
+        role: 'researcher',
+        subscription: 'premium',
+        organization: 'Development',
+        specialization: ['general'],
+        preferences: {
+          ai_settings: {
+            response_length: 'comprehensive',
+            include_citations: true
+          }
+        },
+        apiUsage: {
+          daily: { requests: 0, limit: 1000 },
+          monthly: { requests: 0, limit: 10000 }
+        },
+        updateApiUsage: function(tokens) {
+          this.apiUsage.daily.requests += 1
+          this.apiUsage.monthly.requests += 1
+        }
+      }
+      return next()
+    }
+
     const token = req.header('Authorization')?.replace('Bearer ', '')
 
     if (!token) {

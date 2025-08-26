@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Functionality Test</title>
+</head>
+<body>
+    <h1>Chat API Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testChatAPI() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Test health endpoint
+                results.innerHTML += '<p>Testing health endpoint...</p>';
+                const healthResponse = await fetch('http://localhost:3001/health');
+                
+                if (healthResponse.ok) {
+                    results.innerHTML += '<p>✅ Health check passed</p>';
+                } else {
+                    results.innerHTML += '<p>❌ Health check failed</p>';
+                }
+                
+                // Test chat session creation
+                results.innerHTML += '<p>Testing chat session creation...</p>';
+                const sessionResponse = await fetch('http://localhost:3001/api/chat/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        context: { type: 'paper_analysis' }
+                    })
+                });
+                
+                if (sessionResponse.ok) {
+                    const sessionData = await sessionResponse.json();
+                    results.innerHTML += '<p>✅ Chat session created: ' + sessionData.data.session.sessionId + '</p>';
+                    
+                    // Test sending a message
+                    results.innerHTML += '<p>Testing message sending...</p>';
+                    const messageResponse = await fetch(`http://localhost:3001/api/chat/sessions/${sessionData.data.session.sessionId}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: 'Can you summarize the research paper for me?'
+                        })
+                    });
+                    
+                    if (messageResponse.ok) {
+                        const messageData = await messageResponse.json();
+                        results.innerHTML += '<p>✅ Message sent successfully</p>';
+                        results.innerHTML += '<p>🤖 AI Response: ' + messageData.data.response.content.substring(0, 100) + '...</p>';
+                    } else {
+                        results.innerHTML += '<p>❌ Message sending failed</p>';
+                    }
+                } else {
+                    results.innerHTML += '<p>❌ Chat session creation failed</p>';
+                }
+                
+            } catch (error) {
+                results.innerHTML += '<p>❌ Error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Run test when page loads
+        testChatAPI();
+    </script>
+</body>
+</html>
