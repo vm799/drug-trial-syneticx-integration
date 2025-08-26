@@ -390,6 +390,11 @@ SPECIALIZATION: Focus on ${context.specialization} research and ensure recommend
 
   // Check content safety
   async checkSafety(content) {
+    if (!this.isEnabled) {
+      // Return safe content in mock mode
+      return { flagged: false, safe: true, categories: {}, categoryScores: {}, mockResponse: true }
+    }
+
     try {
       const moderation = await this.client.moderations.create({
         input: content,
