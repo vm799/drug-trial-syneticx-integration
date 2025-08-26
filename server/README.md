@@ -159,3 +159,97 @@ Set all variables from `.env.example` in production:
 ## 📞 Support
 
 For technical issues or questions about the medical AI validation system, refer to the audit logs and error tracking systems.
+
+
+## 🚀 Multi-Agent Workflow
+
+This repo implements a **modular multi-agent system** using OpenAI models.
+
+### Agents:
+- **ResearchAgent** → analyzes medical literature.
+- **TrialMatchingAgent** → identifies clinical trials based on patient/research data.
+- **ExplainerAgent** → produces patient-friendly summaries.
+
+### Coordinator
+`Coordinator.js` orchestrates agent workflows:
+1. ResearchAgent analyzes user query.
+2. TrialMatchingAgent maps results to trials.
+3. ExplainerAgent simplifies results for users.
+
+### Architecture Diagram
+```mermaid
+flowchart TD
+    U[User] -->|Query| FE[Vue Frontend]
+    FE --> BE[Node Backend]
+    BE --> C[Coordinator Agent]
+    C --> R[Research Agent]
+    C --> T[Trial Matching Agent]
+    C --> E[Explainer Agent]
+    R --> DB[(Research Papers DB)]
+    T --> DB
+    E --> BE
+    BE --> FE
+    FE --> U
+
+# UPDATE!!! Multi-agent Workflow (VUE+ VITE  + Tailwind PWA, Node/Express + OpenAI + LangChain)
+
+## Executive Summary
+
+This project transforms the existing repository into a modern, production-ready multi-agent chatbot application for drug and medical trial research. It leverages **vanilla JavaScript, Tailwind CSS, Node.js/Express, and OpenAI’s API** with LangChain.js to orchestrate specialized agents. The app is lightweight (<50MB), installable as a PWA or Electron app, resilient to API downtime with caching and fallbacks, and designed for clean, accessible UX.
+
+### Benefits
+
+* **Resilience**: Multiple fallback APIs (PubMed, ClinicalTrials.gov, Europe PMC) ensure uptime.
+* **Efficiency**: Intelligent caching and rate-limiting reduce API costs.
+* **User-Centric**: Clean Tailwind UI, fast load times, responsive and accessible design.
+* **Scalability**: Modular microservice-ready architecture with CI/CD and monitoring hooks.
+* **Production-Ready**: Tested, secure, and compliant with modern MedTech and UX best practices.
+
+---
+
+## Architecture Diagram
+
+```ascii
+                    ┌──────────────────────────┐
+                    │      User (Chat UI)      │
+                    │  (Vanilla JS + Tailwind) │
+                    └─────────────┬────────────┘
+                                  │
+                                  ▼
+                    ┌──────────────────────────┐
+                    │    Supervisor Agent      │
+                    │ (LangChain.js Orchestration)
+                    └─────────────┬────────────┘
+        ┌─────────────────────────┼─────────────────────────┐
+        ▼                         ▼                         ▼
+┌────────────────┐       ┌────────────────┐       ┌──────────────────┐
+│ Data Retrieval │       │   Caching      │       │ Error Handling   │
+│  Agent         │       │   Agent        │       │   Agent          │
+│ - OpenAI API   │       │ - SQLite/TTL   │       │ - User-friendly  │
+│ - PubMed/NIH   │       │ - IndexedDB    │       │   messages       │
+└────────────────┘       └────────────────┘       └──────────────────┘
+        │                         │                         │
+        ▼                         ▼                         ▼
+┌────────────────┐       ┌────────────────┐       ┌──────────────────┐
+│ Analysis Agent │──────▶│ Response Agent │──────▶│   Chat Frontend  │
+│ Summaries,     │       │ Format answers │       │   (WebSocket)    │
+│ trends,        │       │ context-aware  │       │   Tailwind UI    │
+└────────────────┘       └────────────────┘       └──────────────────┘
+```
+
+---
+
+## Changelog
+
+### Added
+
+* Executive Summary added to README.
+* ASCII architecture diagram of multi-agent workflow added to README.
+
+### Changed
+
+* Documentation updated to reflect migration from SyneticX to OpenAI + fallback APIs.
+
+### Fixed
+
+* Consolidated requirements and streamlined project structure documentation.
