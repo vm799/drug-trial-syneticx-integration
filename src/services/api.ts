@@ -78,7 +78,9 @@ class ApiService {
   private sessionId: string | null = null
 
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+    // Determine base URL based on environment
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    this.baseURL = import.meta.env.VITE_API_URL || (isDevelopment ? 'http://localhost:3001/api' : '/api')
     this.token = localStorage.getItem('authToken')
     this.sessionId = localStorage.getItem('sessionId')
   }
