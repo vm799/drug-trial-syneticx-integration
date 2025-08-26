@@ -124,7 +124,13 @@ class ApiService {
       }
 
       // Only read the body if response is ok
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError)
+        throw new Error('Invalid JSON response from server')
+      }
       return data
     } catch (error) {
       console.error('API request error:', error)
