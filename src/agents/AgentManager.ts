@@ -1,4 +1,5 @@
-import { BaseAgent, AgentContext, AgentResponse, AgentRegistry } from './BaseAgent'
+import { BaseAgent, AgentRegistry } from './BaseAgent'
+import type { AgentContext, AgentResponse } from './BaseAgent'
 import { OrchestratorAgent } from './OrchestratorAgent'
 import { ErrorHandlingAgent } from './ErrorHandlingAgent'
 import { CachingAgent } from './CachingAgent'
@@ -43,8 +44,8 @@ export interface ChatResponse {
 
 export class AgentManager {
   private config: AgentManagerConfig
-  private registry: AgentRegistry
-  private orchestrator: OrchestratorAgent
+  private registry!: AgentRegistry
+  private orchestrator!: OrchestratorAgent
   private activeRequests: Map<string, Promise<AgentResponse>> = new Map()
   private analytics: {
     totalRequests: number
@@ -135,8 +136,9 @@ export class AgentManager {
       console.log('🤖 Multi-agent system initialized successfully')
       console.log(`📊 Registered ${this.registry.getAllAgents().length} agents`)
     } catch (error) {
-      console.error('❌ Failed to initialize agents:', error)
-      throw new Error(`Agent initialization failed: ${error.message}`)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error('❌ Failed to initialize agents:', errorMessage)
+      throw new Error(`Agent initialization failed: ${errorMessage}`)
     }
   }
 
@@ -190,7 +192,8 @@ export class AgentManager {
       console.error('Chat processing error:', error)
 
       // Try emergency fallback
-      const fallbackResponse = await this.emergencyFallback(request, error)
+      const errorInstance = error instanceof Error ? error : new Error(String(error))
+      const fallbackResponse = await this.emergencyFallback(request, errorInstance)
       return fallbackResponse
     } finally {
       this.activeRequests.delete(requestId)
@@ -248,10 +251,10 @@ export class AgentManager {
       metadata: {
         agentsUsed,
         processingTime,
-        cached: result.metadata?.cached || false,
-        validated: result.metadata?.validationPassed || false,
-        qualityScore: result.metadata?.qualityScore,
-        errorRecovered: result.metadata?.fallbackUsed || false,
+        cached: false,
+        validated: false,
+        qualityScore: result.metadata?.confidence || 0.5,
+        errorRecovered: false,
       },
     }
   }
@@ -331,9 +334,10 @@ export class AgentManager {
         agentHealth[agent.getId()] = health
         if (health.healthy) healthyCount++
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
         agentHealth[agent.getId()] = {
           healthy: false,
-          details: { error: error.message },
+          details: { error: errorMessage },
         }
       }
     }

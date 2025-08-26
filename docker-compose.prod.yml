@@ -1,0 +1,433 @@
+# Production Docker Compose configuration
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Application Services
+  # ============================================================================
+  
+  app:
+    image: ghcr.io/vm799/drug-trial-synetixc-integration:latest
+    container_name: medresearch-ai-prod
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - HOST=0.0.0.0
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - PUBMED_API_BASE_URL=${PUBMED_API_BASE_URL}
+    volumes:
+      - app-logs:/app/logs
+      - app-uploads:/app/uploads
+      - app-cache:/app/cache
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - medresearch-prod-network
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 30s
+        failure_action: rollback
+    healthcheck:
+      test: ["CMD", "node", "server/health-check.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ============================================================================
+  # Load Balancer
+  # ============================================================================
+  
+  nginx:
+    image: nginx:alpine
+    container_name: medresearch-nginx-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
+      - BACKEND_UPSTREAM=app:3001
+    volumes:
+      - ./docker/nginx/prod.nginx.conf.template:/etc/nginx/templates/default.conf.template
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - ./docker/nginx/static:/var/www/static:ro
+      - nginx-cache:/var/cache/nginx
+    depends_on:
+      - app
+    networks:
+      - medresearch-prod-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ============================================================================
+  # Database Services (External in production)
+  # ============================================================================
+  
+  # Note: In production, use managed database services like MongoDB Atlas
+  # This is included for complete local production testing
+  mongodb:
+    image: mongo:7
+    container_name: medresearch-mongodb-prod
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-medresearch}
+    volumes:
+      - mongodb-prod-data:/data/db
+      - mongodb-prod-config:/data/configdb
+      - ./docker/mongodb/prod-init:/docker-entrypoint-initdb.d
+    networks:
+      - medresearch-prod-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.5'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    command: |
+      mongod --auth
+             --bind_ip_all
+             --wiredTigerCacheSizeGB 1.5
+             --replSet rs0
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    container_name: medresearch-redis-prod
+    restart: always
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis-prod-data:/data
+      - ./docker/redis/prod-redis.conf:/etc/redis/redis.conf
+    networks:
+      - medresearch-prod-network
+    command: redis-server /etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ============================================================================
+  # Monitoring & Observability
+  # ============================================================================
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: medresearch-prometheus-prod
+    restart: always
+    ports:
+      - "9090:9090"
+    environment:
+      - PROMETHEUS_RETENTION_TIME=${PROMETHEUS_RETENTION_TIME:-30d}
+    volumes:
+      - ./docker/prometheus/prod-prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker/prometheus/rules:/etc/prometheus/rules
+      - prometheus-prod-data:/prometheus
+    networks:
+      - medresearch-prod-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-30d}'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: medresearch-grafana-prod
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SECURITY_SECRET_KEY: ${GRAFANA_SECRET_KEY}
+      GF_DATABASE_TYPE: postgres
+      GF_DATABASE_HOST: ${GRAFANA_DB_HOST}
+      GF_DATABASE_NAME: ${GRAFANA_DB_NAME}
+      GF_DATABASE_USER: ${GRAFANA_DB_USER}
+      GF_DATABASE_PASSWORD: ${GRAFANA_DB_PASSWORD}
+      GF_SESSION_PROVIDER: redis
+      GF_SESSION_PROVIDER_CONFIG: addr=redis:6379,pool_size=100,db=2
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL}
+      GF_SMTP_ENABLED: true
+      GF_SMTP_HOST: ${SMTP_HOST}
+      GF_SMTP_USER: ${SMTP_USER}
+      GF_SMTP_PASSWORD: ${SMTP_PASSWORD}
+      GF_SMTP_FROM_ADDRESS: ${SMTP_FROM_ADDRESS}
+    volumes:
+      - grafana-prod-data:/var/lib/grafana
+      - ./docker/grafana/prod-provisioning:/etc/grafana/provisioning
+    networks:
+      - medresearch-prod-network
+    depends_on:
+      - prometheus
+      - redis
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Log aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: medresearch-loki-prod
+    restart: always
+    ports:
+      - "3100:3100"
+    environment:
+      - LOKI_RETENTION_PERIOD=${LOKI_RETENTION_PERIOD:-168h}
+    volumes:
+      - ./docker/loki/prod-loki.yml:/etc/loki/loki.yml
+      - loki-prod-data:/loki
+    networks:
+      - medresearch-prod-network
+    command: -config.file=/etc/loki/loki.yml
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: medresearch-promtail-prod
+    restart: always
+    volumes:
+      - ./docker/promtail/prod-promtail.yml:/etc/promtail/promtail.yml
+      - app-logs:/var/log/app:ro
+      - nginx-logs:/var/log/nginx:ro
+      - /var/log:/var/log/host:ro
+    networks:
+      - medresearch-prod-network
+    depends_on:
+      - loki
+    command: -config.file=/etc/promtail/promtail.yml
+
+  # ============================================================================
+  # Security & Backup
+  # ============================================================================
+  
+  # Backup service for data persistence
+  backup:
+    image: alpine:latest
+    container_name: medresearch-backup-prod
+    restart: always
+    environment:
+      - BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-0 2 * * *}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-30}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET=${BACKUP_S3_BUCKET}
+    volumes:
+      - mongodb-prod-data:/data/mongodb:ro
+      - redis-prod-data:/data/redis:ro
+      - app-uploads:/data/uploads:ro
+      - ./docker/backup/backup.sh:/backup.sh
+    networks:
+      - medresearch-prod-network
+    depends_on:
+      - mongodb
+      - redis
+    command: crond -f -d 8
+    profiles:
+      - backup
+
+  # SSL certificate management
+  certbot:
+    image: certbot/certbot
+    container_name: medresearch-certbot-prod
+    restart: "no"
+    volumes:
+      - ./docker/nginx/ssl:/etc/letsencrypt
+      - ./docker/nginx/static:/var/www/certbot
+    networks:
+      - medresearch-prod-network
+    profiles:
+      - ssl
+
+  # Security scanner
+  trivy:
+    image: aquasec/trivy:latest
+    container_name: medresearch-security-scan
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./security-reports:/reports
+    networks:
+      - medresearch-prod-network
+    command: --format json --output /reports/scan-report.json image medresearch-ai-prod
+    profiles:
+      - security
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  medresearch-prod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: medresearch-prod-br
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  # Application data
+  app-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/logs
+  app-uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/uploads
+  app-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/cache
+
+  # Database data
+  mongodb-prod-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/mongodb
+  mongodb-prod-config:
+    driver: local
+  redis-prod-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/redis
+
+  # Monitoring data
+  prometheus-prod-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/prometheus
+  grafana-prod-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/grafana
+  loki-prod-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/loki
+
+  # Nginx data
+  nginx-cache:
+    driver: local
+  nginx-logs:
+    driver: local

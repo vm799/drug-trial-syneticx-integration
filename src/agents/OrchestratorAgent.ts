@@ -1,4 +1,4 @@
-import { BaseAgent, AgentContext, AgentResponse, AgentRegistry } from './BaseAgent'
+import { BaseAgent } from "./BaseAgent"; import type { AgentContext, AgentResponse, AgentRegistry } from './BaseAgent'
 
 export interface OrchestratorConfig {
   maxRetries: number

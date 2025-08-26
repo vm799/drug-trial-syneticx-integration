@@ -1,4 +1,4 @@
-import { BaseAgent, AgentContext, AgentResponse } from './BaseAgent'
+import { BaseAgent } from "./BaseAgent"; import type { AgentContext, AgentResponse } from './BaseAgent'
 
 export interface CacheConfig {
   enableRedis: boolean
