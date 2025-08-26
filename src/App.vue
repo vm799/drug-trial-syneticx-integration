@@ -268,21 +268,26 @@ const initializeApp = async () => {
     // Try to check if API is available
     apiStatus.value = 'checking'
 
-    // You can replace this with a simple health check endpoint
-    // For now, we'll just check if the base URL is reachable
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    // Check if we're in development (localhost) or production
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    const baseURL = isDevelopment ? 'http://localhost:3001' : '/api'
+
+    console.log(`🔍 Checking API availability at: ${baseURL}`)
+
     const response = await fetch(`${baseURL}/health`, {
       method: 'GET',
-      signal: AbortSignal.timeout(3000) // 3 second timeout
+      signal: AbortSignal.timeout(2000) // 2 second timeout
     })
 
     if (response.ok) {
       apiStatus.value = 'online'
+      console.log('✅ API service connected')
     } else {
       apiStatus.value = 'offline'
+      console.log('⚠️ API service unavailable, using offline mode')
     }
   } catch (error) {
-    console.log('API not available, using offline mode:', error)
+    console.log('⚠️ API not available, using offline mode:', error.message)
     apiStatus.value = 'offline'
   }
 }
