@@ -120,6 +120,13 @@ const handleChatMessage = (message: string) => {
   }, 1000)
 }
 
+const sendMessage = () => {
+  if (messageInput.value.trim()) {
+    handleChatMessage(messageInput.value)
+    messageInput.value = ''
+  }
+}
+
 const sendQuickMessage = () => {
   if (messageInput.value.trim()) {
     handleChatMessage(messageInput.value)
@@ -245,34 +252,98 @@ const formatDate = computed(() => {
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <!-- Research Papers Section -->
-      <div v-if="activeSection === 'research'" class="space-y-6">
-        <!-- Research Paper Card -->
-        <ResearchPaper
-          :paper="currentPaper"
-          @toggle-bookmark="toggleBookmark"
-          @action="handlePaperAction"
-          @chat-toggle="toggleChat"
-        />
+      <div v-if="activeSection === 'research'" class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+        <!-- Left Column: Paper Content -->
+        <div class="space-y-6 overflow-y-auto pr-2">
+          <!-- Research Paper Card -->
+          <ResearchPaper
+            :paper="currentPaper"
+            @toggle-bookmark="toggleBookmark"
+            @action="handlePaperAction"
+            @chat-toggle="() => showChat = true"
+          />
 
-        <!-- Date Indicator -->
-        <div class="text-center">
-          <p class="text-sm text-gray-500">{{ formatDate }}</p>
+          <!-- Date Indicator -->
+          <div class="text-center">
+            <p class="text-sm text-gray-500">{{ formatDate }}</p>
+          </div>
+
+          <!-- Learning Suggestion -->
+          <SuggestionCard :title="suggestedPaper.title" />
+
+          <!-- Quick Actions -->
+          <div class="card">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <QuickActions :actions="quickActions" @action="handleQuickAction" />
+          </div>
         </div>
 
-        <!-- Learning Suggestion -->
-        <SuggestionCard :title="suggestedPaper.title" />
+        <!-- Right Column: Chat Interface -->
+        <div class="sticky top-6">
+          <div class="card h-[calc(100vh-240px)] flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">Research Assistant</h3>
+              <button
+                v-if="showChat"
+                @click="showChat = false"
+                class="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-        <!-- Quick Actions -->
-        <QuickActions :actions="quickActions" @action="handleQuickAction" />
+            <!-- Chat Messages -->
+            <div class="flex-1 overflow-y-auto mb-4 space-y-4 scrollbar-hide">
+              <div v-if="!showChat" class="text-center py-8 text-gray-500">
+                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p class="text-sm">Start a conversation with the AI assistant</p>
+                <p class="text-xs text-gray-400 mt-1">Use quick actions or type your questions below</p>
+              </div>
 
-        <!-- Chat Interface -->
-        <ChatInterface
-          :messages="chatMessages"
-          :visible="showChat"
-          @send-message="handleChatMessage"
-        />
+              <div v-else>
+                <div
+                  v-for="(message, index) in chatMessages"
+                  :key="index"
+                  class="flex"
+                  :class="message.type === 'user' ? 'justify-end' : 'justify-start'"
+                >
+                  <div
+                    class="max-w-[80%] px-4 py-2 rounded-2xl text-sm"
+                    :class="
+                      message.type === 'user' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-900'
+                    "
+                  >
+                    {{ message.content }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="border-t pt-4">
+              <div class="flex space-x-2">
+                <input
+                  v-model="messageInput"
+                  @keyup.enter="sendMessage"
+                  type="text"
+                  placeholder="Ask about methodologies, results, or implications..."
+                  class="flex-1 input"
+                />
+                <button @click="sendMessage" class="btn btn-primary shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Clinical Trials Section -->
@@ -366,49 +437,8 @@ const formatDate = computed(() => {
       </div>
     </main>
 
-    <!-- Bottom Navigation -->
-    <nav
-      class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-2 sm:py-3"
-    >
-      <div class="max-w-4xl mx-auto">
-        <div class="flex items-center justify-center">
-          <div
-            class="flex items-center space-x-2 bg-gray-100 rounded-full px-4 py-2 w-full max-w-md"
-          >
-            <svg class="w-4 h-4 text-gray-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <input
-              v-model="messageInput"
-              @keyup.enter="sendQuickMessage"
-              type="text"
-              placeholder="Message AI Assistant..."
-              class="bg-transparent border-none outline-none text-sm flex-1 min-w-0 placeholder-gray-500"
-            />
-            <button
-              @click="sendQuickMessage"
-              class="p-1 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-colors shrink-0"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 10l7-7m0 0l7 7m-7-7v18"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Bottom Padding for Fixed Nav -->
-    <div class="h-20"></div>
+    <!-- Bottom Spacing -->
+    <div class="h-6"></div>
   </div>
 </template>
 
