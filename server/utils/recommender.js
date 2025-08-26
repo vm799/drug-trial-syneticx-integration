@@ -5,7 +5,18 @@ import User from '../models/User.js';
 import NodeCache from 'node-cache';
 
 const cache = new NodeCache({ stdTTL: 86400 });  // 24-hour cache TTL
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+let openai = null;
+const getOpenAI = () => {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      console.warn('OpenAI API key not provided - recommendations will be limited');
+      return null;
+    }
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openai;
+};
 
 export const fetchNewRecommendations = async (user) => {
   const cacheKey = `recs_${user._id}`;

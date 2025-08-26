@@ -4,15 +4,30 @@ import Coordinator from "../agents/Coordinator.js";
 import OpenAI from "openai";
 
 const router = express.Router();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const coordinator = new Coordinator(openai);
+
+// Lazy initialize OpenAI and coordinator to ensure env vars are loaded
+let openai = null;
+let coordinator = null;
+
+const initializeAI = () => {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    coordinator = new Coordinator(openai);
+  }
+  return coordinator;
+};
 
 router.post("/", async (req, res) => {
   try {
     const { query, context } = req.body;
-    const results = await coordinator.handleUserQuery(query, context);
+    const coord = initializeAI();
+    const results = await coord.handleUserQuery(query, context);
     res.json(results);
   } catch (err) {
+    console.error('Chat route error:', err);
     res.status(500).json({ error: err.message });
   }
 });

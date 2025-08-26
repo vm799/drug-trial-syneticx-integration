@@ -1,7 +1,6 @@
-// Load environment variables
+// Load environment variables first
 import dotenv from 'dotenv'
 dotenv.config()
-console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY);
 
 import express from 'express'
 import cors from 'cors'
@@ -23,9 +22,7 @@ import authRoutes from './routes/auth.js'
 import chatRoutes from './routes/chat.js'
 import researchRoutes from './routes/research.js'
 import analyticsRoutes from './routes/analytics.js'
-import userRoutes from './routes/user.js';  
-app.use('/api/user', authMiddleware, userRoutes);
-
+import userRoutes from './routes/user.js'
 
 const app = express()
 const server = createServer(app)
@@ -105,6 +102,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/chat', authMiddleware, chatRoutes)
 app.use('/api/research', authMiddleware, researchRoutes)
 app.use('/api/analytics', authMiddleware, analyticsRoutes)
+app.use('/api/user', authMiddleware, userRoutes)
 
 // Socket.io for real-time chat
 io.use((socket, next) => {
