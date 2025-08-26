@@ -23,7 +23,8 @@ import authRoutes from './routes/auth.js'
 import chatRoutes from './routes/chat.js'
 import researchRoutes from './routes/research.js'
 import analyticsRoutes from './routes/analytics.js'
-
+import userRoutes from './routes/user.js';  
+app.use('/api/user', authMiddleware, userRoutes);
 
 
 const app = express()
@@ -174,5 +175,25 @@ server.listen(PORT, () => {
   logger.info(`🚀 Server running on port ${PORT}`)
   logger.info(`📱 Health check: http://localhost:${PORT}/health`)
 })
+
+
+import cron from 'node-cron';
+import User from './models/User.js';
+import { fetchNewRecommendations } from './utils/recommender.js';
+import { sendRecommendationEmail } from './utils/email.js';
+
+cron.schedule('0 9 * * 1', async () => {  // Every Monday at 9 AM
+  const users = await User.find({ subscribedToEmails: true });
+  for (const user of users) {
+    const recommendations = await fetchNewRecommendations(user);
+    if (recommendations.length > 0) {
+      await sendRecommendationEmail(user.email, 'New Research Recommendations', recommendations);
+    } else {
+      // Optional: Send "No new updates" or skip to save resources
+    }
+  }
+}, {
+  timezone: 'UTC',
+});
 
 export default app
