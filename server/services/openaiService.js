@@ -448,6 +448,40 @@ SPECIALIZATION: Focus on ${context.specialization} research and ensure recommend
 
     return results
   }
+
+  // Generate mock responses for development/fallback
+  generateMockResponse(messages, context = {}) {
+    const lastMessage = messages[messages.length - 1]?.content || ''
+    const lowerMessage = lastMessage.toLowerCase()
+
+    let response = ''
+
+    // Context-aware mock responses
+    if (lowerMessage.includes('summarize') || lowerMessage.includes('summary')) {
+      response = 'This research paper presents a comprehensive analysis of the effectiveness of novel therapeutic approaches. The study demonstrates significant improvements in patient outcomes with a 68% response rate and enhanced safety profile compared to traditional treatments. Key findings include reduced adverse effects and improved quality of life metrics across the study population.'
+    } else if (lowerMessage.includes('methodology') || lowerMessage.includes('method')) {
+      response = 'The study employed a robust randomized, double-blind, placebo-controlled design. The methodology included:\\n\\n• **Study Design**: Multi-center randomized controlled trial\\n• **Population**: 2,847 participants across diverse demographics\\n• **Duration**: 24-month follow-up period\\n• **Primary Endpoints**: Overall survival and safety measures\\n• **Statistical Analysis**: Intention-to-treat analysis with Kaplan-Meier survival curves\\n\\nThe methodology follows current gold standards for clinical research.'
+    } else if (lowerMessage.includes('critique') || lowerMessage.includes('limitation')) {
+      response = 'While this study presents compelling evidence, several considerations should be noted:\\n\\n**Strengths:**\\n• Large, well-powered sample size\\n• Rigorous randomized design\\n• Comprehensive safety monitoring\\n\\n**Limitations:**\\n• Limited long-term follow-up data\\n• Geographic concentration in certain regions\\n• Potential selection bias in recruitment\\n\\nFuture research should address these limitations with longer follow-up periods and more diverse populations.'
+    } else if (lowerMessage.includes('related') || lowerMessage.includes('similar')) {
+      response = 'Based on this research topic, here are relevant related studies:\\n\\n1. **"Advanced Therapeutic Interventions in Clinical Practice"** (Nature Medicine, 2023)\\n   - Similar patient population and outcomes\\n   - Complements current findings\\n\\n2. **"Safety and Efficacy of Novel Treatment Protocols"** (NEJM, 2024)\\n   - Validates safety profile observations\\n   - Larger scale implementation study\\n\\n3. **"Long-term Outcomes in Therapeutic Research"** (Lancet, 2023)\\n   - Provides extended follow-up data\\n   - Addresses some current study limitations\\n\\nWould you like me to analyze any specific aspect of these related studies?'
+    } else {
+      response = 'I can help you analyze this research paper comprehensively. Based on your question, I can provide insights into:\\n\\n• **Study methodology and design**\\n• **Key findings and statistical significance**\\n• **Clinical implications and applications**\\n• **Study limitations and future research directions**\\n• **Related research and comparative analysis**\\n\\nWhat specific aspect would you like me to explore in more detail?'
+    }
+
+    return {
+      content: response,
+      metadata: {
+        model: 'mock-response',
+        tokens: Math.floor(response.length / 4),
+        confidence: 0.85,
+        responseTime: Math.floor(Math.random() * 500) + 200,
+        safety: { safe: true, categories: [] },
+        evidence: [],
+        mockResponse: true
+      }
+    }
+  }
 }
 
 export default new OpenAIService()
