@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import ResearchPaper from './components/ResearchPaper.vue'
 import ChatInterface from './components/ChatInterface.vue'
 import QuickActions from './components/QuickActions.vue'
 import SuggestionCard from './components/SuggestionCard.vue'
-import apiService from './services/api'
+import type { ChatResponse } from './services/agentService'
 
 // Sample research papers data
 const currentPaper = ref({
@@ -27,7 +27,7 @@ const suggestedPaper = ref({
   type: 'Research Article',
 })
 
-const chatMessages = ref([] as Array<{type: 'user' | 'assistant', content: string, id?: string}>)
+const chatMessages = ref([] as Array<{type: 'user' | 'assistant', content: string, id?: string, metadata?: any}>)
 const currentChatSession = ref<string | null>(null)
 const isLoading = ref(false)
 const lastAssistantMessage = ref('')
@@ -36,6 +36,14 @@ const messageInput = ref('')
 const showChat = ref(false)
 const activeSection = ref('research') // research, trials, bookmarks, analytics
 const apiStatus = ref<'online' | 'offline' | 'checking'>('checking')
+
+// Inject agent service and PWA manager
+const agentService = inject('agentService') as any
+const pwaManager = inject('pwaManager') as any
+
+// Multi-agent system status
+const systemHealth = ref<any>(null)
+const agentStats = ref<any>(null)
 
 const quickActions = [
   { id: 'summarize', label: 'Summarize paper', icon: '📄' },
@@ -62,28 +70,32 @@ const handleQuickAction = async (action: string) => {
   try {
     // Ensure we have a chat session
     if (!currentChatSession.value) {
-      await createChatSession()
+      currentChatSession.value = generateSessionId()
     }
 
-    let message = ''
-    switch (action) {
-      case 'summarize':
-        message = 'Please provide a comprehensive summary of this research paper.'
-        break
-      case 'methodology':
-        message = 'Can you explain the research methodologies used in this study?'
-        break
-      case 'critique':
-        message = 'What are the strengths and limitations of this research?'
-        break
-      case 'related':
-        message = 'Can you find and show me related studies on this topic?'
-        break
-      default:
-        message = 'How can you help me analyze this research paper?'
-    }
+    // Use agent service for quick actions
+    const response = await agentService.processQuickAction(action, currentChatSession.value, {
+      researchPaper: currentPaper.value,
+      specialization: 'medical_research',
+      userId: 'demo_user'
+    })
 
-    await sendChatMessage(message)
+    // Add response to chat
+    chatMessages.value.push({
+      type: 'assistant',
+      content: response.content,
+      id: Date.now().toString(),
+      metadata: {
+        confidence: response.confidence,
+        sources: response.sources,
+        agentsUsed: response.metadata.agentsUsed,
+        cached: response.metadata.cached
+      }
+    })
+
+    lastAssistantMessage.value = response.content
+    updateApiStatus()
+
   } catch (error) {
     console.error('Quick action error:', error)
     apiStatus.value = 'offline'
@@ -131,6 +143,7 @@ const toggleChat = () => {
 }
 
 const handleChatMessage = async (message: string) => {
+  // Add user message immediately
   chatMessages.value.push({
     type: 'user',
     content: message,
@@ -142,10 +155,34 @@ const handleChatMessage = async (message: string) => {
   try {
     // Ensure we have a chat session
     if (!currentChatSession.value) {
-      await createChatSession()
+      currentChatSession.value = generateSessionId()
     }
 
-    await sendChatMessage(message)
+    // Process message through multi-agent system
+    const response = await agentService.processMessage(message, currentChatSession.value, {
+      specialization: 'medical_research',
+      researchPaper: currentPaper.value,
+      conversationHistory: chatMessages.value.slice(-10), // Last 10 messages for context
+      userId: 'demo_user'
+    })
+
+    // Add assistant response
+    chatMessages.value.push({
+      type: 'assistant',
+      content: response.content,
+      id: Date.now().toString(),
+      metadata: {
+        confidence: response.confidence,
+        sources: response.sources,
+        agentsUsed: response.metadata.agentsUsed,
+        cached: response.metadata.cached,
+        validated: response.metadata.validated
+      }
+    })
+
+    lastAssistantMessage.value = response.content
+    updateApiStatus()
+
   } catch (error) {
     console.error('Chat message error:', error)
     apiStatus.value = 'offline'
@@ -190,52 +227,28 @@ const handleChatMessageFallback = (message: string) => {
   }, 1000)
 }
 
-// API functions
-const createChatSession = async () => {
-  try {
-    const session = await apiService.createChatSession({
-      type: 'paper_analysis',
-      specialization: 'medical research'
-    })
-    currentChatSession.value = session.sessionId
-    return session
-  } catch (error) {
-    console.error('Failed to create chat session:', error)
-    // Continue with mock responses
-    currentChatSession.value = 'mock_session_' + Date.now()
-    throw error
+// Utility functions
+const generateSessionId = (): string => {
+  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+}
+
+const updateApiStatus = () => {
+  if (agentService?.isServiceReady()) {
+    apiStatus.value = pwaManager?.isOnlineMode() ? 'online' : 'offline'
+  } else {
+    apiStatus.value = 'offline'
   }
 }
 
-const sendChatMessage = async (message: string) => {
-  if (!currentChatSession.value) {
-    throw new Error('No active chat session')
-  }
-
+// Load system health and stats
+const loadSystemStats = async () => {
   try {
-    const response = await apiService.sendMessage(
-      currentChatSession.value,
-      message,
-      {
-        paperId: currentPaper.value.doi || 'current_paper',
-        paperTitle: currentPaper.value.title,
-        paperContext: currentPaper.value.abstract
-      }
-    )
-
-    chatMessages.value.push({
-      type: 'assistant',
-      content: response.response.content,
-      id: Date.now().toString()
-    })
-
-    lastAssistantMessage.value = response.response.content
-    apiStatus.value = 'online'
-    return response
+    if (agentService?.isServiceReady()) {
+      systemHealth.value = await agentService.getSystemHealth()
+      agentStats.value = agentService.getAnalytics()
+    }
   } catch (error) {
-    console.error('Failed to send message:', error)
-    apiStatus.value = 'offline'
-    throw error
+    console.error('Failed to load system stats:', error)
   }
 }
 
@@ -262,39 +275,46 @@ const formatDate = computed(() => {
   })
 })
 
-// Initialize the application
+// Initialize the application with multi-agent system
 const initializeApp = async () => {
-  // Check if we're in development (localhost) or production
-  const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-
-  if (!isDevelopment) {
-    // In production, start with offline mode since backend may not be available
-    console.log('🌐 Production environment detected - starting in offline mode')
-    apiStatus.value = 'offline'
-    return
-  }
+  apiStatus.value = 'checking'
 
   try {
-    // Only try to connect to API in development
-    apiStatus.value = 'checking'
-    const baseURL = 'http://localhost:3001'
+    console.log('🚀 Initializing MedResearch AI with Multi-Agent System...')
 
-    console.log(`🔍 Development mode - checking API at: ${baseURL}`)
-
-    const response = await fetch(`${baseURL}/health`, {
-      method: 'GET',
-      signal: AbortSignal.timeout(2000) // 2 second timeout
-    })
-
-    if (response.ok) {
-      apiStatus.value = 'online'
-      console.log('✅ API service connected')
-    } else {
-      apiStatus.value = 'offline'
-      console.log('⚠️ API service unavailable, using offline mode')
+    // Initialize agent service if not already done
+    if (agentService && !agentService.isServiceReady()) {
+      await agentService.initialize()
     }
+
+    // Update status based on agent service and network
+    updateApiStatus()
+
+    // Load system statistics
+    await loadSystemStats()
+
+    // Setup PWA event listeners
+    if (pwaManager) {
+      pwaManager.on('online', () => {
+        updateApiStatus()
+        console.log('🌐 Network restored - multi-agent system online')
+      })
+
+      pwaManager.on('offline', () => {
+        updateApiStatus()
+        console.log('📱 Network offline - using cached responses')
+      })
+
+      pwaManager.on('updateAvailable', () => {
+        console.log('🔄 App update available')
+        // Could show update notification here
+      })
+    }
+
+    console.log('✅ Multi-Agent Medical Research System initialized')
+
   } catch (error) {
-    console.log('⚠️ API not available, using offline mode:', error.message)
+    console.error('❌ Initialization failed:', error)
     apiStatus.value = 'offline'
   }
 }
@@ -468,28 +488,28 @@ onMounted(() => {
               <div class="flex items-center space-x-2">
                 <h3 class="text-lg font-semibold text-gray-900">Research Assistant</h3>
                 <div
-                  v-if="apiStatus === 'online'"
-                  class="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs"
-                  title="Connected to AI service"
-                >
-                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Live AI</span>
-                </div>
-                <div
-                  v-else-if="apiStatus === 'offline'"
-                  class="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs"
-                  title="Using offline responses"
-                >
-                  <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                  <span>Offline Mode</span>
-                </div>
-                <div
-                  v-else
-                  class="flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
-                >
-                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                  <span>Connecting...</span>
-                </div>
+                v-if="apiStatus === 'online'"
+                class="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs"
+                title="Multi-Agent AI System Online"
+              >
+                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Multi-Agent AI</span>
+              </div>
+              <div
+                v-else-if="apiStatus === 'offline'"
+                class="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs"
+                title="Offline Mode - Using cached responses"
+              >
+                <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span>Offline Mode</span>
+              </div>
+              <div
+                v-else
+                class="flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
+              >
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                <span>Initializing Agents...</span>
+              </div>
               </div>
               <button
                 @click="showChat = false"
@@ -510,7 +530,10 @@ onMounted(() => {
                 <p class="text-sm">Start a conversation with the AI assistant</p>
                 <p class="text-xs text-gray-400 mt-1">Use quick actions or type your questions below</p>
                 <div v-if="apiStatus === 'offline'" class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p class="text-xs text-yellow-700">💡 Currently in offline mode - responses are pre-configured but still helpful!</p>
+                  <p class="text-xs text-yellow-700">💡 Multi-agent system in offline mode - using cached medical research data!</p>
+                </div>
+                <div v-if="systemHealth && systemHealth.overall" class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p class="text-xs text-blue-700">🤖 {{ systemHealth.overall.healthyAgents }}/{{ systemHealth.overall.totalAgents }} AI agents active</p>
                 </div>
               </div>
 
