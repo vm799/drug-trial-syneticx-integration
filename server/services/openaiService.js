@@ -124,7 +124,8 @@ class OpenAIService {
       }
     } catch (error) {
       logger.error('OpenAI API error:', error)
-      throw new Error('Failed to generate AI response')
+      // Fallback to mock response if OpenAI fails
+      return this.generateMockResponse(messages, context)
     }
   }
 
