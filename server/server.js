@@ -1,3 +1,8 @@
+// Load environment variables
+import dotenv from 'dotenv'
+dotenv.config()
+console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY);
+
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -6,7 +11,6 @@ import rateLimit from 'express-rate-limit'
 import mongoSanitize from 'express-mongo-sanitize'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
-import dotenv from 'dotenv'
 
 // Import custom modules
 import connectDB from './config/database.js'
@@ -20,8 +24,7 @@ import chatRoutes from './routes/chat.js'
 import researchRoutes from './routes/research.js'
 import analyticsRoutes from './routes/analytics.js'
 
-// Load environment variables
-dotenv.config()
+
 
 const app = express()
 const server = createServer(app)

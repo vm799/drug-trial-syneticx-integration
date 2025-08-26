@@ -6,12 +6,7 @@ class OpenAIService {
   constructor() {
     this.client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-    })
-
-    this.models = {
-      chat: 'gpt-4-turbo-preview',
-      embedding: 'text-embedding-3-small',
-    }
+    })  
 
     // Validation thresholds
     this.thresholds = {
@@ -151,7 +146,7 @@ SPECIALIZATION: Focus on ${context.specialization} research and ensure recommend
   // Validate response for hallucinations and accuracy
   async validateResponse(content, context) {
     const validation = {
-      hasCitations: this.checkCitations(content),
+      hasCitations: this.checkCitations(content, context),
       factChecked: false,
       riskFlags: [],
       confidence: 0.8,
@@ -274,7 +269,7 @@ SPECIALIZATION: Focus on ${context.specialization} research and ensure recommend
   async findSupportingEvidence(content, context) {
     try {
       // Extract key concepts for search
-      const concepts = await this.extractKeyConcepts(content)
+      const concepts = await this.extractKeyConcepts(content,context)
 
       const evidence = []
 

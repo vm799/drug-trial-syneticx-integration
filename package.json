@@ -17,16 +17,29 @@
     "server:start": "cd server && npm start",
     "dev:fullstack": "concurrently \"npm run dev\" \"npm run server:dev\"",
     "setup": "npm install && npm run server:install",
-    "start:production": "npm run build && concurrently \"npm run preview\" \"npm run server:start\""
+    "start:production": "npm run build && concurrently \"npm run preview\" \"npm run server:start\"",
+    "start": "node server.js"
   },
   "dependencies": {
-    "vue": "^3.5.17"
+    "@sentry/vue": "^10.5.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.18.0",
+    "openai": "^5.15.0",
+    "socket.io": "^4.8.1",
+    "vue": "^3.5.20",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
     "@tsconfig/node22": "^22.0.2",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.15.32",
+    "@types/vue-router": "^2.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vitest/eslint-plugin": "^1.2.7",
     "@vue/eslint-config-prettier": "^10.2.0",
@@ -34,6 +47,7 @@
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
     "eslint": "^9.29.0",
     "eslint-plugin-vue": "~10.2.0",
     "jiti": "^2.4.2",
@@ -47,5 +61,18 @@
     "vite-plugin-vue-devtools": "^7.7.7",
     "vitest": "^3.2.4",
     "vue-tsc": "^2.2.10"
-  }
+  },
+  "description": "[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/vm799/drug-trial-synetixc-integration) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/) [![Vue](https://img.shields.io/badge/vue-3.5.17-brightgreen.svg)](https://vuejs.org/)",
+  "main": "postcss.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vm799/drug-trial-synetixc-integration.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vm799/drug-trial-synetixc-integration/issues"
+  },
+  "homepage": "https://github.com/vm799/drug-trial-synetixc-integration#readme"
 }
