@@ -35,6 +35,7 @@ const lastAssistantMessage = ref('')
 const messageInput = ref('')
 const showChat = ref(false)
 const activeSection = ref('research') // research, trials, bookmarks, analytics
+const apiStatus = ref<'online' | 'offline' | 'checking'>('checking')
 
 const quickActions = [
   { id: 'summarize', label: 'Summarize paper', icon: '📄' },
@@ -85,6 +86,7 @@ const handleQuickAction = async (action: string) => {
     await sendChatMessage(message)
   } catch (error) {
     console.error('Quick action error:', error)
+    apiStatus.value = 'offline'
     // Fallback to mock response if API fails
     handleQuickActionFallback(action)
   } finally {
@@ -146,6 +148,7 @@ const handleChatMessage = async (message: string) => {
     await sendChatMessage(message)
   } catch (error) {
     console.error('Chat message error:', error)
+    apiStatus.value = 'offline'
     // Fallback to intelligent mock response
     handleChatMessageFallback(message)
   } finally {
@@ -227,9 +230,11 @@ const sendChatMessage = async (message: string) => {
     })
 
     lastAssistantMessage.value = response.response.content
+    apiStatus.value = 'online'
     return response
   } catch (error) {
     console.error('Failed to send message:', error)
+    apiStatus.value = 'offline'
     throw error
   }
 }
@@ -418,7 +423,32 @@ const formatDate = computed(() => {
             }"
           >
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold text-gray-900">Research Assistant</h3>
+              <div class="flex items-center space-x-2">
+                <h3 class="text-lg font-semibold text-gray-900">Research Assistant</h3>
+                <div
+                  v-if="apiStatus === 'online'"
+                  class="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs"
+                  title="Connected to AI service"
+                >
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Live AI</span>
+                </div>
+                <div
+                  v-else-if="apiStatus === 'offline'"
+                  class="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs"
+                  title="Using offline responses"
+                >
+                  <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <span>Offline Mode</span>
+                </div>
+                <div
+                  v-else
+                  class="flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
+                >
+                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                  <span>Connecting...</span>
+                </div>
+              </div>
               <button
                 @click="showChat = false"
                 class="p-1 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
