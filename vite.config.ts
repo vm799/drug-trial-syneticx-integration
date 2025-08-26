@@ -23,11 +23,7 @@ export default defineConfig({
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24, // 24 hours
               },
-              cacheKeyWillBeUsed: async ({ request }) => {
-                // Cache API responses by URL without auth headers
-                const url = new URL(request.url)
-                return url.pathname + url.search
-              },
+              // Note: cacheKeyWillBeUsed removed due to TypeScript compatibility
             },
           },
           {

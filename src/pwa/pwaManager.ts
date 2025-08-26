@@ -241,18 +241,6 @@ class PWAManager {
       badge: '/icons/badge-72x72.png',
       tag: 'app-update',
       requireInteraction: true,
-      actions: [
-        {
-          action: 'update',
-          title: 'Update Now',
-          icon: '/icons/update-icon.png',
-        },
-        {
-          action: 'later',
-          title: 'Later',
-          icon: '/icons/later-icon.png',
-        },
-      ],
     })
   }
 
