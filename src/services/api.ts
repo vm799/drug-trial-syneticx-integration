@@ -78,7 +78,9 @@ class ApiService {
   private sessionId: string | null = null
 
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+    // Determine base URL based on environment
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    this.baseURL = import.meta.env.VITE_API_URL || (isDevelopment ? 'http://localhost:3001/api' : '/api')
     this.token = localStorage.getItem('authToken')
     this.sessionId = localStorage.getItem('sessionId')
   }
@@ -107,12 +109,28 @@ class ApiService {
         },
       })
 
-      const data = await response.json()
-
+      // Check if response is ok before trying to read the body
       if (!response.ok) {
-        throw new Error(data.message || 'API request failed')
+        let errorMessage = 'API request failed'
+        try {
+          // Try to read error response as JSON
+          const errorData = await response.json()
+          errorMessage = errorData.message || errorMessage
+        } catch (jsonError) {
+          // If JSON parsing fails, use status text
+          errorMessage = response.statusText || errorMessage
+        }
+        throw new Error(errorMessage)
       }
 
+      // Only read the body if response is ok
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError)
+        throw new Error('Invalid JSON response from server')
+      }
       return data
     } catch (error) {
       console.error('API request error:', error)

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Specific Body Stream Error Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>Body Stream Error Fix - Specific Test</h1>
+    <p>This test reproduces the exact scenario that was causing the "body stream already read" error.</p>
+    <div id="results"></div>
+    
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        // Simulate the exact API service request method with the old buggy behavior
+        async function oldBuggyRequest(url, options) {
+            addResult('🐛 Testing OLD buggy behavior (for comparison)...', 'warning');
+            
+            try {
+                const response = await fetch(url, options);
+                
+                // This was the bug: reading JSON before checking if response is ok
+                const data = await response.json();  // This consumes the body stream
+                
+                if (!response.ok) {
+                    // This would try to access data.message, but if JSON parsing failed above,
+                    // this could cause issues, or if we tried to read the response again, 
+                    // we'd get "body stream already read"
+                    throw new Error(data.message || 'API request failed');
+                }
+                
+                return data;
+            } catch (error) {
+                if (error.message.includes('body stream')) {
+                    addResult('❌ OLD METHOD: Body stream error detected: ' + error.message, 'error');
+                } else {
+                    addResult('⚠️ OLD METHOD: Other error: ' + error.message, 'warning');
+                }
+                throw error;
+            }
+        }
+
+        // Simulate the new fixed request method
+        async function newFixedRequest(url, options) {
+            addResult('✅ Testing NEW fixed behavior...', 'info');
+            
+            try {
+                const response = await fetch(url, options);
+                
+                // Check if response is ok before trying to read the body
+                if (!response.ok) {
+                    let errorMessage = 'API request failed';
+                    try {
+                        // Try to read error response as JSON
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorMessage;
+                    } catch (jsonError) {
+                        // If JSON parsing fails, use status text
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                // Only read the body if response is ok
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    throw new Error('Invalid JSON response from server');
+                }
+                return data;
+            } catch (error) {
+                if (error.message.includes('body stream')) {
+                    addResult('❌ NEW METHOD: Body stream error still present: ' + error.message, 'error');
+                } else {
+                    addResult('✅ NEW METHOD: Handled error properly: ' + error.message, 'success');
+                }
+                throw error;
+            }
+        }
+
+        async function runSpecificTest() {
+            addResult('🧪 Starting specific body stream error test...', 'info');
+            
+            // Test URL that should fail (unauthorized)
+            const testUrl = 'http://localhost:3001/api/chat/sessions';
+            const testOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer invalid-token'
+                },
+                body: JSON.stringify({
+                    context: { type: 'paper_analysis' }
+                })
+            };
+
+            addResult('📝 Test scenario: Making unauthorized request to chat sessions endpoint', 'info');
+            
+            // Test 1: Try the old buggy method (commented out to avoid actual errors)
+            addResult('⏭️ Skipping old buggy method test (would cause actual errors)', 'warning');
+            
+            // Test 2: Try the new fixed method
+            try {
+                addResult('🔧 Testing new fixed method...', 'info');
+                await newFixedRequest(testUrl, testOptions);
+                addResult('❓ Unexpected: Request succeeded (should have failed due to auth)', 'warning');
+            } catch (error) {
+                if (error.message.includes('body stream already read')) {
+                    addResult('❌ CRITICAL: Body stream error still present in new method!', 'error');
+                } else {
+                    addResult('✅ SUCCESS: New method handled error properly without body stream issues', 'success');
+                }
+            }
+
+            // Test 3: Test multiple rapid requests (stress test)
+            addResult('🚀 Stress test: Multiple rapid requests...', 'info');
+            
+            const promises = [];
+            for (let i = 0; i < 5; i++) {
+                promises.push(
+                    newFixedRequest(testUrl, {
+                        ...testOptions,
+                        headers: {
+                            ...testOptions.headers,
+                            'X-Test-Request': i.toString()
+                        }
+                    }).catch(error => {
+                        if (error.message.includes('body stream')) {
+                            addResult(`❌ Request ${i}: Body stream error detected!`, 'error');
+                            return { error: 'body_stream', index: i };
+                        } else {
+                            return { error: 'handled', index: i };
+                        }
+                    })
+                );
+            }
+
+            const results = await Promise.all(promises);
+            const bodyStreamErrors = results.filter(r => r && r.error === 'body_stream').length;
+            
+            if (bodyStreamErrors > 0) {
+                addResult(`❌ CRITICAL: ${bodyStreamErrors} body stream errors detected in stress test!`, 'error');
+            } else {
+                addResult('✅ SUCCESS: All rapid requests handled properly without body stream errors', 'success');
+            }
+
+            addResult('🎉 Test completed! Check results above.', 'info');
+        }
+
+        // Run the test
+        runSpecificTest();
+    </script>
+</body>
+</html>

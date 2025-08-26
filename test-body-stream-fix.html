@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Body Stream Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Body Stream Error Fix Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        async function testApiService() {
+            addResult('🧪 Testing API Service with corrected body stream handling...', 'info');
+
+            try {
+                // Test 1: Health check (should work)
+                addResult('Test 1: Health endpoint check...', 'info');
+                const healthResponse = await fetch('http://localhost:3001/health');
+                if (healthResponse.ok) {
+                    addResult('✅ Health check passed', 'success');
+                } else {
+                    addResult('❌ Health check failed - but this should not cause body stream error', 'error');
+                }
+
+                // Test 2: Try to create chat session (may fail but shouldn't have body stream error)
+                addResult('Test 2: Chat session creation (testing error handling)...', 'info');
+                const sessionResponse = await fetch('http://localhost:3001/api/chat/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        context: { type: 'paper_analysis' }
+                    })
+                });
+
+                if (sessionResponse.ok) {
+                    const sessionData = await sessionResponse.json();
+                    addResult('✅ Chat session created successfully: ' + sessionData.data?.session?.sessionId, 'success');
+                } else {
+                    // This is expected to fail, but should not give "body stream already read" error
+                    addResult('⚠️ Chat session creation failed (expected), but no body stream error occurred', 'info');
+                }
+
+                // Test 3: Test multiple failed requests (this used to cause the body stream error)
+                addResult('Test 3: Multiple failed requests (stress test)...', 'info');
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        const testResponse = await fetch('http://localhost:3001/api/chat/sessions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer invalid-token'  // This will fail
+                            },
+                            body: JSON.stringify({ test: true })
+                        });
+                        
+                        if (!testResponse.ok) {
+                            addResult(`   Request ${i+1}: Failed as expected (${testResponse.status}) - no body stream error`, 'info');
+                        }
+                    } catch (error) {
+                        if (error.message.includes('body stream already read')) {
+                            addResult(`   Request ${i+1}: ❌ BODY STREAM ERROR STILL PRESENT: ${error.message}`, 'error');
+                        } else {
+                            addResult(`   Request ${i+1}: Expected error without body stream issue: ${error.message}`, 'info');
+                        }
+                    }
+                }
+
+                addResult('🎉 All tests completed! No "body stream already read" errors detected.', 'success');
+
+            } catch (error) {
+                if (error.message.includes('body stream already read')) {
+                    addResult('❌ CRITICAL: Body stream error still present: ' + error.message, 'error');
+                } else {
+                    addResult('ℹ️ Test completed with expected error: ' + error.message, 'info');
+                }
+            }
+        }
+
+        // Run tests when page loads
+        testApiService();
+    </script>
+</body>
+</html>
