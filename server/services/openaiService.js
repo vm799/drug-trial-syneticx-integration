@@ -36,6 +36,11 @@ class OpenAIService {
 
   // Main chat completion with validation
   async generateResponse(messages, context = {}) {
+    // If OpenAI is not available, return a mock response
+    if (!this.isEnabled) {
+      return this.generateMockResponse(messages, context)
+    }
+
     try {
       const startTime = Date.now()
 
