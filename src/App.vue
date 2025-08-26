@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import ResearchPaper from './components/ResearchPaper.vue'
 import ChatInterface from './components/ChatInterface.vue'
 import QuickActions from './components/QuickActions.vue'
@@ -261,6 +261,36 @@ const formatDate = computed(() => {
     year: 'numeric',
   })
 })
+
+// Initialize the application
+const initializeApp = async () => {
+  try {
+    // Try to check if API is available
+    apiStatus.value = 'checking'
+
+    // You can replace this with a simple health check endpoint
+    // For now, we'll just check if the base URL is reachable
+    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    const response = await fetch(`${baseURL}/health`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(3000) // 3 second timeout
+    })
+
+    if (response.ok) {
+      apiStatus.value = 'online'
+    } else {
+      apiStatus.value = 'offline'
+    }
+  } catch (error) {
+    console.log('API not available, using offline mode:', error)
+    apiStatus.value = 'offline'
+  }
+}
+
+// Component lifecycle
+onMounted(() => {
+  initializeApp()
+})
 </script>
 
 <template>
@@ -467,6 +497,9 @@ const formatDate = computed(() => {
                 </svg>
                 <p class="text-sm">Start a conversation with the AI assistant</p>
                 <p class="text-xs text-gray-400 mt-1">Use quick actions or type your questions below</p>
+                <div v-if="apiStatus === 'offline'" class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p class="text-xs text-yellow-700">💡 Currently in offline mode - responses are pre-configured but still helpful!</p>
+                </div>
               </div>
 
               <div v-else>
