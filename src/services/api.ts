@@ -109,12 +109,22 @@ class ApiService {
         },
       })
 
-      const data = await response.json()
-
+      // Check if response is ok before trying to read the body
       if (!response.ok) {
-        throw new Error(data.message || 'API request failed')
+        let errorMessage = 'API request failed'
+        try {
+          // Try to read error response as JSON
+          const errorData = await response.json()
+          errorMessage = errorData.message || errorMessage
+        } catch (jsonError) {
+          // If JSON parsing fails, use status text
+          errorMessage = response.statusText || errorMessage
+        }
+        throw new Error(errorMessage)
       }
 
+      // Only read the body if response is ok
+      const data = await response.json()
       return data
     } catch (error) {
       console.error('API request error:', error)
