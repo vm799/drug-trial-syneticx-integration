@@ -24,7 +24,11 @@
     "@langchain/core": "^0.3.72",
     "@langchain/openai": "^0.6.9",
     "@sentry/vue": "^10.5.0",
+
     "bull": "^4.16.5",
+
+    "axios": "^1.11.0",
+
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -35,6 +39,9 @@
     "ioredis": "^5.7.0",
     "langchain": "^0.3.31",
     "mongoose": "^8.18.0",
+    "node-cache": "^5.1.2",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.5",
     "openai": "^5.15.0",
     "redis": "^5.8.2",
     "socket.io": "^4.8.1",
@@ -47,6 +54,7 @@
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
+    "@types/axios": "^0.9.36",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.15.32",
     "@types/vue-router": "^2.0.0",

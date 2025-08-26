@@ -9,6 +9,14 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      interests: [{ type: String }],  // e.g., ['neuromodulation', 'biotech']
+  subscribedToEmails: { 
+    type: Boolean, 
+    default: true 
+  },
+  lastRecommendationDate: { 
+    type: Date 
+  },
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email address'],
     },
     password: {
