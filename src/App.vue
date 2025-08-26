@@ -26,18 +26,7 @@ const suggestedPaper = ref({
   type: 'Research Article',
 })
 
-const chatMessages = ref([
-  {
-    type: 'assistant' as const,
-    content:
-      "I'd like to learn about this paper: Agent Enhancement using Deep Reinforcement Learning Algorithms for Multiplayer game (Slither.io)",
-  },
-  {
-    type: 'user' as const,
-    content:
-      'What would you like to know about the paper: Agent Enhancement using Deep Reinforcement Learning Algorithms for Multiplayer game (Slither.io)?',
-  },
-])
+const chatMessages = ref([] as Array<{type: 'user' | 'assistant', content: string}>)
 
 const messageInput = ref('')
 const showChat = ref(false)
@@ -254,9 +243,9 @@ const formatDate = computed(() => {
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <!-- Research Papers Section -->
-      <div v-if="activeSection === 'research'" class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+      <div v-if="activeSection === 'research'" class="flex flex-col lg:grid lg:grid-cols-2 gap-6 min-h-[calc(100vh-200px)]">
         <!-- Left Column: Paper Content -->
-        <div class="space-y-6 overflow-y-auto pr-2">
+        <div class="space-y-6 overflow-y-auto lg:pr-2 order-1">
           <!-- Research Paper Card -->
           <ResearchPaper
             :paper="currentPaper"
@@ -281,14 +270,33 @@ const formatDate = computed(() => {
         </div>
 
         <!-- Right Column: Chat Interface -->
-        <div class="sticky top-6">
-          <div class="card h-[calc(100vh-240px)] flex flex-col">
+        <div class="order-2 lg:sticky lg:top-6">
+          <!-- Mobile Chat Toggle Button -->
+          <div class="lg:hidden mb-4">
+            <button
+              @click="showChat = !showChat"
+              class="w-full btn btn-primary"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              {{ showChat ? 'Hide Chat' : 'Open Chat Assistant' }}
+            </button>
+          </div>
+
+          <!-- Chat Container -->
+          <div
+            class="card flex flex-col"
+            :class="{
+              'h-96 lg:h-[calc(100vh-240px)]': true,
+              'hidden lg:flex': !showChat
+            }"
+          >
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold text-gray-900">Research Assistant</h3>
               <button
-                v-if="showChat"
                 @click="showChat = false"
-                class="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                class="p-1 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
               >
                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -298,7 +306,7 @@ const formatDate = computed(() => {
 
             <!-- Chat Messages -->
             <div class="flex-1 overflow-y-auto mb-4 space-y-4 scrollbar-hide">
-              <div v-if="!showChat" class="text-center py-8 text-gray-500">
+              <div v-if="chatMessages.length === 0" class="text-center py-8 text-gray-500">
                 <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
@@ -314,7 +322,7 @@ const formatDate = computed(() => {
                   :class="message.type === 'user' ? 'justify-end' : 'justify-start'"
                 >
                   <div
-                    class="max-w-[80%] px-4 py-2 rounded-2xl text-sm"
+                    class="max-w-[80%] px-4 py-2 rounded-2xl text-sm break-words"
                     :class="
                       message.type === 'user' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-900'
                     "
@@ -333,7 +341,7 @@ const formatDate = computed(() => {
                   @keyup.enter="sendMessage"
                   type="text"
                   placeholder="Ask about methodologies, results, or implications..."
-                  class="flex-1 input"
+                  class="flex-1 input text-sm"
                 />
                 <button @click="sendMessage" class="btn btn-primary shrink-0">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
