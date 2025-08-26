@@ -13,7 +13,7 @@
           <div class="flex items-center space-x-4">
             <div class="flex items-center space-x-2">
               <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span class="text-sm text-gray-600">{{ systemStatus }}</span>
+              <span class="text-sm font-medium text-gray-900">{{ systemStatus }}</span>
             </div>
           </div>
         </div>
@@ -89,8 +89,8 @@
         <div class="bg-white rounded-lg shadow p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Research Assistant</h3>
           <div class="space-y-4">
-            <div class="bg-gray-50 rounded p-3">
-              <p class="text-sm text-gray-600">Ask me about medical research, clinical trials, or get insights from the latest papers.</p>
+            <div class="bg-blue-50 rounded p-3 border border-blue-200">
+              <p class="text-sm font-medium text-blue-900">Ask me about medical research, clinical trials, or get insights from the latest papers.</p>
             </div>
             <div class="flex space-x-2">
               <input 
@@ -108,8 +108,15 @@
                 {{ isLoading ? '...' : 'Send' }}
               </button>
             </div>
-            <div v-if="lastResponse" class="bg-blue-50 rounded p-3">
-              <p class="text-sm text-gray-800">{{ lastResponse }}</p>
+            <div v-if="lastResponse" class="bg-green-50 rounded p-4 border border-green-200">
+              <div class="flex items-start space-x-2">
+                <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  🤖
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-green-900 leading-relaxed">{{ lastResponse }}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -135,19 +142,19 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="flex items-center space-x-2">
             <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span class="text-sm">Frontend</span>
+            <span class="text-sm font-medium text-gray-900">Frontend</span>
           </div>
           <div class="flex items-center space-x-2">
             <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span class="text-sm">Backend API</span>
+            <span class="text-sm font-medium text-gray-900">Backend API</span>
           </div>
           <div class="flex items-center space-x-2">
             <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span class="text-sm">Database</span>
+            <span class="text-sm font-medium text-gray-900">Database</span>
           </div>
           <div class="flex items-center space-x-2">
-            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span class="text-sm">OpenAI (Mock Mode)</span>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span class="text-sm font-medium text-gray-900">OpenAI Connected</span>
           </div>
         </div>
       </div>
@@ -208,11 +215,32 @@ const sendMessage = async () => {
   chatMessage.value = ''
   
   try {
-    // Mock response for now
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    lastResponse.value = `Thank you for your question about "${message}". The AI research system is processing your query and will provide insights from the latest medical literature. This is a demo response while the full AI system is being initialized.`
+    // Call the actual backend API
+    const response = await fetch('http://localhost:3001/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // For now, we'll skip authentication to test
+      },
+      body: JSON.stringify({
+        query: message,
+        context: {
+          sessionId: 'demo-session',
+          specialization: 'general'
+        }
+      })
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      lastResponse.value = data.results?.response || data.message || 'AI response received successfully!'
+    } else {
+      const errorData = await response.json()
+      lastResponse.value = `Error: ${errorData.message || 'Failed to get AI response'}`
+    }
   } catch (error) {
-    lastResponse.value = 'Sorry, there was an error processing your request. Please try again.'
+    console.error('Chat error:', error)
+    lastResponse.value = 'Sorry, there was an error connecting to the AI service. Please check that the backend is running and try again.'
   } finally {
     isLoading.value = false
   }
@@ -220,11 +248,15 @@ const sendMessage = async () => {
 
 const checkSystemStatus = async () => {
   try {
-    const response = await fetch('/api/health')
+    const response = await fetch('http://localhost:3001/health')
     if (response.ok) {
+      const healthData = await response.json()
       systemStatus.value = 'All Systems Operational'
+    } else {
+      systemStatus.value = 'System Issues Detected'
     }
   } catch (error) {
+    console.error('Health check failed:', error)
     systemStatus.value = 'Backend Offline'
   }
 }

@@ -495,4 +495,12 @@ SPECIALIZATION: Focus on ${context.specialization} research and ensure recommend
   }
 }
 
-export default new OpenAIService()
+// Lazy singleton to ensure environment variables are loaded first
+let instance = null
+
+export default function getOpenAIService() {
+  if (!instance) {
+    instance = new OpenAIService()
+  }
+  return instance
+}
