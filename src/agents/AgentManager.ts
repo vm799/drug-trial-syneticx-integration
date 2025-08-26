@@ -22,7 +22,7 @@ export interface ChatRequest {
   userId?: string
   specialization?: string
   researchPaper?: any
-  conversationHistory?: Array<{ type: 'user' | 'assistant', content: string }>
+  conversationHistory?: Array<{ type: 'user' | 'assistant'; content: string }>
   metadata?: Record<string, any>
 }
 
@@ -62,14 +62,14 @@ export class AgentManager {
       enableAnalytics: true,
       defaultTimeout: 30000,
       maxConcurrentRequests: 10,
-      ...config
+      ...config,
     }
 
     this.analytics = {
       totalRequests: 0,
       successfulRequests: 0,
       averageResponseTime: 0,
-      agentUsageStats: {}
+      agentUsageStats: {},
     }
 
     this.initializeAgents()
@@ -85,7 +85,7 @@ export class AgentManager {
         const errorAgent = new ErrorHandlingAgent({
           enableUserFriendlyMessages: true,
           enableRecoveryActions: true,
-          enableFallbackResponses: true
+          enableFallbackResponses: true,
         })
         this.registry.register(errorAgent)
       }
@@ -96,7 +96,7 @@ export class AgentManager {
           enableBrowserCache: true,
           memoryTTL: 60 * 60, // 1 hour
           browserTTL: 30 * 60, // 30 minutes
-          enablePredictiveCaching: true
+          enablePredictiveCaching: true,
         })
         this.registry.register(cachingAgent)
       }
@@ -108,7 +108,7 @@ export class AgentManager {
           enableLocalDatabase: true,
           timeoutMs: 15000,
           maxRetries: 3,
-          fallbackMode: 'sequential'
+          fallbackMode: 'sequential',
         })
         this.registry.register(dataAgent)
       }
@@ -118,7 +118,7 @@ export class AgentManager {
           enableCitationCheck: true,
           enableFactVerification: true,
           enableMedicalSafety: true,
-          minConfidenceThreshold: 0.7
+          minConfidenceThreshold: 0.7,
         })
         this.registry.register(validationAgent)
       }
@@ -128,13 +128,12 @@ export class AgentManager {
         maxRetries: 3,
         timeoutMs: this.config.defaultTimeout,
         fallbackEnabled: true,
-        circuitBreakerThreshold: 5
+        circuitBreakerThreshold: 5,
       })
       this.registry.register(this.orchestrator)
 
       console.log('🤖 Multi-agent system initialized successfully')
       console.log(`📊 Registered ${this.registry.getAllAgents().length} agents`)
-
     } catch (error) {
       console.error('❌ Failed to initialize agents:', error)
       throw new Error(`Agent initialization failed: ${error.message}`)
@@ -168,8 +167,8 @@ export class AgentManager {
           type: 'chat',
           enableCaching: this.config.enableCaching,
           requiresValidation: this.config.enableValidation,
-          ...request.metadata
-        }
+          ...request.metadata,
+        },
       }
 
       // Execute orchestrated workflow
@@ -187,14 +186,12 @@ export class AgentManager {
         // Handle orchestration failure
         throw new Error(result.error || 'Orchestration failed')
       }
-
     } catch (error) {
       console.error('Chat processing error:', error)
-      
+
       // Try emergency fallback
       const fallbackResponse = await this.emergencyFallback(request, error)
       return fallbackResponse
-
     } finally {
       this.activeRequests.delete(requestId)
       this.updateAnalytics(Date.now() - startTime)
@@ -203,12 +200,12 @@ export class AgentManager {
 
   // Build chat response from agent result
   private async buildChatResponse(
-    result: AgentResponse, 
-    startTime: number, 
-    context: AgentContext
+    result: AgentResponse,
+    startTime: number,
+    context: AgentContext,
   ): Promise<ChatResponse> {
     const processingTime = Date.now() - startTime
-    
+
     // Extract content from result
     let content = ''
     let confidence = result.metadata?.confidence || 0.5
@@ -243,7 +240,7 @@ export class AgentManager {
 
     // Get additional metadata from orchestrator
     const orchestratorStats = this.orchestrator.getOverallStats()
-    
+
     return {
       content,
       confidence,
@@ -254,8 +251,8 @@ export class AgentManager {
         cached: result.metadata?.cached || false,
         validated: result.metadata?.validationPassed || false,
         qualityScore: result.metadata?.qualityScore,
-        errorRecovered: result.metadata?.fallbackUsed || false
-      }
+        errorRecovered: result.metadata?.fallbackUsed || false,
+      },
     }
   }
 
@@ -265,7 +262,7 @@ export class AgentManager {
 
     // Try to get a fallback response from error handling agent
     const errorAgent = this.registry.getAgent('error-handling') as ErrorHandlingAgent
-    
+
     if (errorAgent) {
       try {
         const context: AgentContext = {
@@ -275,12 +272,12 @@ export class AgentManager {
           metadata: {
             error: error.message,
             fallbackMode: true,
-            originalMessage: request.message
-          }
+            originalMessage: request.message,
+          },
         }
 
         const errorResult = await errorAgent.process(context)
-        
+
         if (errorResult.success && errorResult.data?.userMessage) {
           return {
             content: errorResult.data.userMessage,
@@ -291,8 +288,8 @@ export class AgentManager {
               processingTime: 200,
               cached: false,
               validated: false,
-              errorRecovered: true
-            }
+              errorRecovered: true,
+            },
           }
         }
       } catch (fallbackError) {
@@ -302,7 +299,8 @@ export class AgentManager {
 
     // Final static fallback
     return {
-      content: 'I apologize, but I\'m experiencing technical difficulties right now. Please try your question again in a moment, or contact support if the issue persists.',
+      content:
+        "I apologize, but I'm experiencing technical difficulties right now. Please try your question again in a moment, or contact support if the issue persists.",
       confidence: 0.2,
       sources: [],
       metadata: {
@@ -310,9 +308,9 @@ export class AgentManager {
         processingTime: 100,
         cached: false,
         validated: false,
-        errorRecovered: true
+        errorRecovered: true,
       },
-      error: error.message
+      error: error.message,
     }
   }
 
@@ -324,18 +322,18 @@ export class AgentManager {
   }> {
     const agentHealth: Record<string, { healthy: boolean; details?: any }> = {}
     let healthyCount = 0
-    
+
     const allAgents = this.registry.getAllAgents()
-    
+
     for (const agent of allAgents) {
       try {
         const health = await agent.getHealthStatus()
         agentHealth[agent.getId()] = health
         if (health.healthy) healthyCount++
       } catch (error) {
-        agentHealth[agent.getId()] = { 
-          healthy: false, 
-          details: { error: error.message } 
+        agentHealth[agent.getId()] = {
+          healthy: false,
+          details: { error: error.message },
         }
       }
     }
@@ -344,13 +342,13 @@ export class AgentManager {
       totalAgents: allAgents.length,
       healthyAgents: healthyCount,
       activeRequests: this.activeRequests.size,
-      analytics: this.analytics
+      analytics: this.analytics,
     }
 
     return {
       healthy: healthyCount > 0,
       agents: agentHealth,
-      overall
+      overall,
     }
   }
 
@@ -359,12 +357,12 @@ export class AgentManager {
     return {
       ...this.analytics,
       orchestratorStats: this.orchestrator.getOverallStats(),
-      agentHealth: this.registry.getAllAgents().map(agent => ({
+      agentHealth: this.registry.getAllAgents().map((agent) => ({
         id: agent.getId(),
         name: agent.getName(),
         healthy: agent.isHealthy(),
-        priority: agent.getPriority()
-      }))
+        priority: agent.getPriority(),
+      })),
     }
   }
 
@@ -404,12 +402,12 @@ export class AgentManager {
       name: agent.getName(),
       capabilities: agent.getCapabilities(),
       healthy: agent.isHealthy(),
-      priority: agent.getPriority()
+      priority: agent.getPriority(),
     }
   }
 
   getAllAgentsInfo(): any[] {
-    return this.registry.getAllAgents().map(agent => this.getAgentInfo(agent.getId()))
+    return this.registry.getAllAgents().map((agent) => this.getAgentInfo(agent.getId()))
   }
 
   // Configuration updates
@@ -461,16 +459,16 @@ export class AgentManager {
   // Graceful shutdown
   async shutdown(): Promise<void> {
     console.log('🛑 Shutting down agent manager...')
-    
+
     // Wait for active requests to complete (with timeout)
     const activeRequestPromises = Array.from(this.activeRequests.values())
     if (activeRequestPromises.length > 0) {
       console.log(`⏳ Waiting for ${activeRequestPromises.length} active requests...`)
-      
+
       try {
         await Promise.race([
           Promise.allSettled(activeRequestPromises),
-          new Promise(resolve => setTimeout(resolve, 5000)) // 5 second timeout
+          new Promise((resolve) => setTimeout(resolve, 5000)), // 5 second timeout
         ])
       } catch (error) {
         console.warn('Some requests did not complete during shutdown:', error)
@@ -479,7 +477,7 @@ export class AgentManager {
 
     // Clear caches
     await this.clearCaches()
-    
+
     console.log('✅ Agent manager shutdown complete')
   }
 }

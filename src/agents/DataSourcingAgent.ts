@@ -42,8 +42,14 @@ export interface DataResponse {
 export class DataSourcingAgent extends BaseAgent {
   private config: DataSourceConfig
   private dataSources: Map<string, DataSource> = new Map()
-  private circuitBreakers: Map<string, { failures: number; lastFailure: Date; isOpen: boolean }> = new Map()
-  private queryHistory: Array<{ query: string; source: string; success: boolean; timestamp: Date }> = []
+  private circuitBreakers: Map<string, { failures: number; lastFailure: Date; isOpen: boolean }> =
+    new Map()
+  private queryHistory: Array<{
+    query: string
+    source: string
+    success: boolean
+    timestamp: Date
+  }> = []
 
   constructor(config: Partial<DataSourceConfig> = {}) {
     super('data-sourcing', 'Data Sourcing Agent', [
@@ -52,22 +58,22 @@ export class DataSourcingAgent extends BaseAgent {
         description: 'Searches medical research databases',
         inputTypes: ['query', 'research_context'],
         outputTypes: ['research_results', 'papers'],
-        dependencies: []
+        dependencies: [],
       },
       {
         name: 'fallback_search',
         description: 'Provides backup data sources when primary fails',
         inputTypes: ['failed_query', 'error_context'],
         outputTypes: ['backup_results', 'cached_data'],
-        dependencies: []
+        dependencies: [],
       },
       {
         name: 'data_validation',
         description: 'Validates and enriches sourced data',
         inputTypes: ['raw_data'],
         outputTypes: ['validated_data', 'quality_score'],
-        dependencies: []
-      }
+        dependencies: [],
+      },
     ])
 
     this.config = {
@@ -79,7 +85,7 @@ export class DataSourcingAgent extends BaseAgent {
       maxRetries: 3,
       fallbackMode: 'sequential',
       enableCircuitBreaker: true,
-      ...config
+      ...config,
     }
 
     this.initializeDataSources()
@@ -90,23 +96,23 @@ export class DataSourcingAgent extends BaseAgent {
 
     try {
       const request = this.parseRequest(context)
-      
-      this.log('info', 'Processing data request', { 
+
+      this.log('info', 'Processing data request', {
         query: request.query,
         type: request.type,
-        sessionId: context.sessionId 
+        sessionId: context.sessionId,
       })
 
       // Get available data sources in priority order
       const availableSources = this.getAvailableDataSources()
-      
+
       if (availableSources.length === 0) {
         throw new Error('No data sources available')
       }
 
       // Execute data sourcing strategy
       const result = await this.executeDataSourcing(request, availableSources, context)
-      
+
       // Record query for analytics
       this.recordQuery(request.query, result.source, true)
 
@@ -115,16 +121,15 @@ export class DataSourcingAgent extends BaseAgent {
         confidence: result.confidence,
         dataSource: result.source,
         responseTime: result.responseTime,
-        fallbackUsed: result.source !== availableSources[0]?.id
+        fallbackUsed: result.source !== availableSources[0]?.id,
       })
-
     } catch (error) {
       this.log('error', 'Data sourcing failed', error)
       this.recordQuery(context.metadata?.query || 'unknown', 'none', false)
-      
+
       return this.createResponse(false, undefined, `Data sourcing failed: ${error.message}`, {
         processingTime: Date.now() - startTime,
-        confidence: 0
+        confidence: 0,
       })
     }
   }
@@ -155,8 +160,8 @@ export class DataSourcingAgent extends BaseAgent {
         healthySources,
         sourceHealth: Object.fromEntries(sourceHealth),
         circuitBreakerStatus: Object.fromEntries(this.circuitBreakers),
-        recentQueries: this.queryHistory.slice(-10)
-      }
+        recentQueries: this.queryHistory.slice(-10),
+      },
     }
   }
 
@@ -170,7 +175,7 @@ export class DataSourcingAgent extends BaseAgent {
         isAvailable: this.config.enableOpenAI,
         lastChecked: new Date(),
         failureCount: 0,
-        costPerQuery: 0.02
+        costPerQuery: 0.02,
       },
       {
         id: 'pubmed',
@@ -179,7 +184,7 @@ export class DataSourcingAgent extends BaseAgent {
         isAvailable: this.config.enablePubMed,
         lastChecked: new Date(),
         failureCount: 0,
-        costPerQuery: 0
+        costPerQuery: 0,
       },
       {
         id: 'local_db',
@@ -188,7 +193,7 @@ export class DataSourcingAgent extends BaseAgent {
         isAvailable: this.config.enableLocalDatabase,
         lastChecked: new Date(),
         failureCount: 0,
-        costPerQuery: 0
+        costPerQuery: 0,
       },
       {
         id: 'web_scraping',
@@ -197,17 +202,17 @@ export class DataSourcingAgent extends BaseAgent {
         isAvailable: this.config.enableWebScraping,
         lastChecked: new Date(),
         failureCount: 0,
-        costPerQuery: 0.001
-      }
+        costPerQuery: 0.001,
+      },
     ]
 
-    sources.forEach(source => {
+    sources.forEach((source) => {
       this.dataSources.set(source.id, source)
       if (this.config.enableCircuitBreaker) {
         this.circuitBreakers.set(source.id, {
           failures: 0,
           lastFailure: new Date(0),
-          isOpen: false
+          isOpen: false,
         })
       }
     })
@@ -219,48 +224,57 @@ export class DataSourcingAgent extends BaseAgent {
   private parseRequest(context: AgentContext): DataRequest {
     const conversation = context.conversation || []
     const lastMessage = conversation[conversation.length - 1]?.content || ''
-    
+
     return {
       query: context.metadata?.query || lastMessage || 'medical research query',
       type: context.metadata?.type || this.inferQueryType(lastMessage),
       specialization: context.specialization,
       maxResults: context.metadata?.maxResults || 10,
-      filters: context.metadata?.filters || {}
+      filters: context.metadata?.filters || {},
     }
   }
 
   // Infer query type from content
   private inferQueryType(query: string): 'research' | 'chat' | 'analysis' | 'validation' {
     const lowerQuery = query.toLowerCase()
-    
-    if (lowerQuery.includes('research') || lowerQuery.includes('study') || lowerQuery.includes('trial')) {
+
+    if (
+      lowerQuery.includes('research') ||
+      lowerQuery.includes('study') ||
+      lowerQuery.includes('trial')
+    ) {
       return 'research'
     }
-    if (lowerQuery.includes('analyze') || lowerQuery.includes('compare') || lowerQuery.includes('evaluate')) {
+    if (
+      lowerQuery.includes('analyze') ||
+      lowerQuery.includes('compare') ||
+      lowerQuery.includes('evaluate')
+    ) {
       return 'analysis'
     }
-    if (lowerQuery.includes('validate') || lowerQuery.includes('verify') || lowerQuery.includes('check')) {
+    if (
+      lowerQuery.includes('validate') ||
+      lowerQuery.includes('verify') ||
+      lowerQuery.includes('check')
+    ) {
       return 'validation'
     }
-    
+
     return 'chat'
   }
 
   // Get available data sources in priority order
   private getAvailableDataSources(): DataSource[] {
     return Array.from(this.dataSources.values())
-      .filter(source => 
-        source.isAvailable && 
-        !this.isCircuitBreakerOpen(source.id)
-      )
+      .filter((source) => source.isAvailable && !this.isCircuitBreakerOpen(source.id))
       .sort((a, b) => a.priority - b.priority)
   }
 
   // Execute data sourcing with fallback strategy
   private async executeDataSourcing(
-    request: DataRequest, 
-    sources: DataSource[], 
-    context: AgentContext
+    request: DataRequest,
+    sources: DataSource[],
+    context: AgentContext,
   ): Promise<DataResponse> {
     let lastError: Error | null = null
 
@@ -268,21 +282,20 @@ export class DataSourcingAgent extends BaseAgent {
     for (const source of sources) {
       try {
         this.log('info', `Trying data source: ${source.name}`)
-        
+
         const result = await this.queryDataSource(source, request, context)
-        
+
         if (result && result.data) {
           // Success - reset circuit breaker
           this.resetCircuitBreaker(source.id)
           this.updateSourceHealth(source.id, true)
-          
+
           return result
         }
-
       } catch (error) {
         this.log('warn', `Data source failed: ${source.name}`, error)
         lastError = error as Error
-        
+
         // Record failure
         this.recordSourceFailure(source.id)
         this.updateSourceHealth(source.id, false)
@@ -302,9 +315,9 @@ export class DataSourcingAgent extends BaseAgent {
 
   // Query individual data source
   private async queryDataSource(
-    source: DataSource, 
-    request: DataRequest, 
-    context: AgentContext
+    source: DataSource,
+    request: DataRequest,
+    context: AgentContext,
   ): Promise<DataResponse | null> {
     const startTime = Date.now()
 
@@ -336,9 +349,8 @@ export class DataSourcingAgent extends BaseAgent {
         confidence: this.calculateConfidence(source, data),
         responseTime,
         cost: source.costPerQuery,
-        citations: this.extractCitations(data)
+        citations: this.extractCitations(data),
       }
-
     } catch (error) {
       const responseTime = Date.now() - startTime
       source.responseTime = responseTime
@@ -350,7 +362,7 @@ export class DataSourcingAgent extends BaseAgent {
   private async queryOpenAI(request: DataRequest, context: AgentContext): Promise<any> {
     // Check if OpenAI service is available (simulate check)
     const isAvailable = Math.random() > 0.1 // 90% availability simulation
-    
+
     if (!isAvailable) {
       throw new Error('OpenAI service temporarily unavailable')
     }
@@ -364,12 +376,12 @@ export class DataSourcingAgent extends BaseAgent {
           findings: [
             'Recent studies show promising results in this area',
             'Multiple clinical trials have validated the approach',
-            'Safety profile appears favorable across populations'
+            'Safety profile appears favorable across populations',
           ],
           confidence: 0.85,
-          sourceType: 'ai_generated'
+          sourceType: 'ai_generated',
         }
-      
+
       case 'analysis':
         return {
           type: 'analysis_response',
@@ -377,10 +389,10 @@ export class DataSourcingAgent extends BaseAgent {
           keyPoints: [
             'Methodology appears sound and well-designed',
             'Statistical significance achieved in primary endpoints',
-            'Limitations include small sample size in subgroups'
+            'Limitations include small sample size in subgroups',
           ],
-          confidence: 0.80,
-          sourceType: 'ai_analysis'
+          confidence: 0.8,
+          sourceType: 'ai_analysis',
         }
 
       default:
@@ -388,7 +400,7 @@ export class DataSourcingAgent extends BaseAgent {
           type: 'chat_response',
           response: `Based on current medical literature, regarding ${request.query}: This appears to be an area of active research with several promising developments.`,
           confidence: 0.75,
-          sourceType: 'ai_chat'
+          sourceType: 'ai_chat',
         }
     }
   }
@@ -396,7 +408,7 @@ export class DataSourcingAgent extends BaseAgent {
   private async queryPubMed(request: DataRequest, context: AgentContext): Promise<any> {
     // Simulate PubMed API call
     const isAvailable = Math.random() > 0.05 // 95% availability
-    
+
     if (!isAvailable) {
       throw new Error('PubMed API timeout')
     }
@@ -412,12 +424,12 @@ export class DataSourcingAgent extends BaseAgent {
           year: 2024,
           abstract: `This study investigated the clinical applications of ${request.query} in a randomized controlled trial...`,
           pmid: '12345678',
-          doi: '10.1234/jmr.2024.001'
-        }
+          doi: '10.1234/jmr.2024.001',
+        },
       ],
       totalResults: 247,
-      confidence: 0.90,
-      sourceType: 'pubmed_api'
+      confidence: 0.9,
+      sourceType: 'pubmed_api',
     }
   }
 
@@ -430,19 +442,19 @@ export class DataSourcingAgent extends BaseAgent {
         cachedResults: [
           'Previously cached research findings available',
           'Local analysis based on stored medical literature',
-          'Offline research database contains relevant studies'
+          'Offline research database contains relevant studies',
         ],
         lastUpdated: new Date().toISOString(),
-        confidence: 0.70,
-        sourceType: 'local_database'
-      }
+        confidence: 0.7,
+        sourceType: 'local_database',
+      },
     }
   }
 
   private async queryWebScraping(request: DataRequest, context: AgentContext): Promise<any> {
     // Simulate web scraping (lower reliability)
     const isAvailable = Math.random() > 0.2 // 80% availability
-    
+
     if (!isAvailable) {
       throw new Error('Web scraping sources unavailable')
     }
@@ -454,66 +466,70 @@ export class DataSourcingAgent extends BaseAgent {
           source: 'medical research website',
           content: `Web-sourced information about ${request.query}`,
           url: 'https://example-medical-site.com',
-          lastCrawled: new Date().toISOString()
-        }
+          lastCrawled: new Date().toISOString(),
+        },
       ],
-      confidence: 0.60,
-      sourceType: 'web_scraping'
+      confidence: 0.6,
+      sourceType: 'web_scraping',
     }
   }
 
   // Emergency fallback when all sources fail
-  private async emergencyFallback(request: DataRequest, context: AgentContext): Promise<DataResponse | null> {
+  private async emergencyFallback(
+    request: DataRequest,
+    context: AgentContext,
+  ): Promise<DataResponse | null> {
     this.log('info', 'Executing emergency fallback')
 
     // Return static fallback response
     const fallbackData = {
       type: 'emergency_fallback',
-      message: 'I apologize, but our research services are temporarily experiencing issues. However, I can provide some general guidance.',
+      message:
+        'I apologize, but our research services are temporarily experiencing issues. However, I can provide some general guidance.',
       fallbackContent: this.generateFallbackContent(request.query),
-      confidence: 0.40,
-      sourceType: 'emergency_fallback'
+      confidence: 0.4,
+      sourceType: 'emergency_fallback',
     }
 
     return {
       source: 'emergency_fallback',
       data: fallbackData,
-      confidence: 0.40,
+      confidence: 0.4,
       responseTime: 100,
-      cost: 0
+      cost: 0,
     }
   }
 
   // Generate fallback content based on query
   private generateFallbackContent(query: string): string {
     const lowerQuery = query.toLowerCase()
-    
+
     if (lowerQuery.includes('clinical trial') || lowerQuery.includes('study')) {
       return 'For clinical trial information, I recommend checking ClinicalTrials.gov directly or consulting with medical professionals for the most current data.'
     }
-    
+
     if (lowerQuery.includes('drug') || lowerQuery.includes('medication')) {
       return 'For drug information, please consult official prescribing information or speak with a pharmacist or physician for accurate, up-to-date details.'
     }
-    
+
     if (lowerQuery.includes('treatment') || lowerQuery.includes('therapy')) {
       return 'Treatment decisions should always be made in consultation with qualified healthcare providers who can assess your specific situation.'
     }
-    
+
     return 'For the most reliable medical information, I recommend consulting peer-reviewed medical literature or speaking with healthcare professionals.'
   }
 
   // Circuit breaker implementation
   private isCircuitBreakerOpen(sourceId: string): boolean {
     if (!this.config.enableCircuitBreaker) return false
-    
+
     const breaker = this.circuitBreakers.get(sourceId)
     if (!breaker) return false
 
     // Check if cooldown period has passed
     const cooldownMs = 60000 // 1 minute
     const timeSinceLastFailure = Date.now() - breaker.lastFailure.getTime()
-    
+
     if (timeSinceLastFailure > cooldownMs && breaker.isOpen) {
       // Try to reset circuit breaker
       breaker.isOpen = false
@@ -531,7 +547,7 @@ export class DataSourcingAgent extends BaseAgent {
     if (breaker) {
       breaker.failures++
       breaker.lastFailure = new Date()
-      
+
       // Open circuit breaker after 3 failures
       if (breaker.failures >= 3) {
         breaker.isOpen = true
@@ -576,10 +592,10 @@ export class DataSourcingAgent extends BaseAgent {
         baseConfidence = 0.95
         break
       case 'local_db':
-        baseConfidence = 0.80
+        baseConfidence = 0.8
         break
       case 'web_scraping':
-        baseConfidence = 0.60
+        baseConfidence = 0.6
         break
     }
 
@@ -590,7 +606,7 @@ export class DataSourcingAgent extends BaseAgent {
 
     // Adjust based on source reliability
     if (source.failureCount > 0) {
-      baseConfidence *= Math.max(0.5, 1 - (source.failureCount * 0.1))
+      baseConfidence *= Math.max(0.5, 1 - source.failureCount * 0.1)
     }
 
     return Math.min(1.0, Math.max(0.1, baseConfidence))
@@ -598,14 +614,14 @@ export class DataSourcingAgent extends BaseAgent {
 
   private extractCitations(data: any): string[] {
     const citations: string[] = []
-    
+
     if (data?.papers) {
       data.papers.forEach((paper: any) => {
         if (paper.doi) citations.push(paper.doi)
         if (paper.pmid) citations.push(`PMID: ${paper.pmid}`)
       })
     }
-    
+
     return citations
   }
 
@@ -614,7 +630,7 @@ export class DataSourcingAgent extends BaseAgent {
       query: query.substring(0, 100), // Limit length
       source,
       success,
-      timestamp: new Date()
+      timestamp: new Date(),
     })
 
     // Keep only last 100 queries
@@ -629,21 +645,24 @@ export class DataSourcingAgent extends BaseAgent {
       totalQueries: this.queryHistory.length,
       successRate: 0,
       sourceUsage: {} as Record<string, number>,
-      averageResponseTime: 0
+      averageResponseTime: 0,
     }
 
-    const successfulQueries = this.queryHistory.filter(q => q.success)
-    stats.successRate = this.queryHistory.length > 0 ? successfulQueries.length / this.queryHistory.length : 0
+    const successfulQueries = this.queryHistory.filter((q) => q.success)
+    stats.successRate =
+      this.queryHistory.length > 0 ? successfulQueries.length / this.queryHistory.length : 0
 
     // Calculate source usage
-    this.queryHistory.forEach(query => {
+    this.queryHistory.forEach((query) => {
       stats.sourceUsage[query.source] = (stats.sourceUsage[query.source] || 0) + 1
     })
 
     // Calculate average response time
-    const sourcesWithTimes = Array.from(this.dataSources.values()).filter(s => s.responseTime)
+    const sourcesWithTimes = Array.from(this.dataSources.values()).filter((s) => s.responseTime)
     if (sourcesWithTimes.length > 0) {
-      stats.averageResponseTime = sourcesWithTimes.reduce((sum, s) => sum + (s.responseTime || 0), 0) / sourcesWithTimes.length
+      stats.averageResponseTime =
+        sourcesWithTimes.reduce((sum, s) => sum + (s.responseTime || 0), 0) /
+        sourcesWithTimes.length
     }
 
     return stats
@@ -656,7 +675,7 @@ export class DataSourcingAgent extends BaseAgent {
         // Simple health check (would be more sophisticated in real implementation)
         const isHealthy = Math.random() > 0.1 // Simulate 90% uptime
         this.updateSourceHealth(sourceId, isHealthy)
-        
+
         if (isHealthy) {
           this.resetCircuitBreaker(sourceId)
         }
@@ -664,7 +683,7 @@ export class DataSourcingAgent extends BaseAgent {
         this.updateSourceHealth(sourceId, false)
       }
     }
-    
+
     this.log('info', 'Source health refresh completed')
   }
 }

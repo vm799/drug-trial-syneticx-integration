@@ -88,7 +88,7 @@ export abstract class BaseAgent {
     success: boolean,
     data?: T,
     error?: string,
-    metadata?: any
+    metadata?: any,
   ): AgentResponse<T> {
     return {
       success,
@@ -98,8 +98,8 @@ export abstract class BaseAgent {
         agentId: this.id,
         processingTime: Date.now(),
         confidence: 0.8,
-        ...metadata
-      }
+        ...metadata,
+      },
     }
   }
 
@@ -117,9 +117,9 @@ export class AgentRegistry {
 
   register(agent: BaseAgent): void {
     this.agents.set(agent.getId(), agent)
-    
+
     // Index by capabilities
-    agent.getCapabilities().forEach(capability => {
+    agent.getCapabilities().forEach((capability) => {
       if (!this.agentsByCapability.has(capability.name)) {
         this.agentsByCapability.set(capability.name, [])
       }
@@ -133,12 +133,12 @@ export class AgentRegistry {
     const agent = this.agents.get(agentId)
     if (agent) {
       this.agents.delete(agentId)
-      
+
       // Remove from capability index
-      agent.getCapabilities().forEach(capability => {
+      agent.getCapabilities().forEach((capability) => {
         const agentList = this.agentsByCapability.get(capability.name)
         if (agentList) {
-          const index = agentList.findIndex(a => a.getId() === agentId)
+          const index = agentList.findIndex((a) => a.getId() === agentId)
           if (index !== -1) {
             agentList.splice(index, 1)
           }
@@ -162,12 +162,12 @@ export class AgentRegistry {
   }
 
   getHealthyAgents(): BaseAgent[] {
-    return Array.from(this.agents.values()).filter(agent => agent.isHealthy())
+    return Array.from(this.agents.values()).filter((agent) => agent.isHealthy())
   }
 
   async checkAllAgentsHealth(): Promise<Map<string, boolean>> {
     const healthMap = new Map<string, boolean>()
-    
+
     for (const [agentId, agent] of this.agents) {
       try {
         const health = await agent.getHealthStatus()

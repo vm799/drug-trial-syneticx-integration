@@ -17,7 +17,7 @@ const pwaManager = getPWAManager({
   enableBackgroundSync: true,
   enableOfflineMode: true,
   updateCheckInterval: 60000, // Check for updates every minute
-  cacheStrategy: 'networkFirst'
+  cacheStrategy: 'networkFirst',
 })
 
 // Initialize Agent Service
@@ -25,7 +25,7 @@ const agentService = getAgentService({
   enableOfflineMode: true,
   cacheResponses: true,
   maxRetries: 3,
-  retryDelay: 1000
+  retryDelay: 1000,
 })
 
 // Global properties for easy access in components
@@ -39,7 +39,7 @@ app.provide('agentService', agentService)
 // Global error handler for uncaught errors
 app.config.errorHandler = (error, instance, info) => {
   console.error('Vue error:', error, info)
-  
+
   // Log error for analytics
   if (instance && (instance as any).$agents) {
     // Could send error to analytics service here
@@ -66,17 +66,20 @@ pwaManager.on('online', () => {
 })
 
 // Initialize agent service when app starts
-agentService.initialize().then(() => {
-  console.log('🤖 Multi-agent system ready')
-}).catch((error) => {
-  console.error('❌ Failed to initialize agent system:', error)
-  // App will still work in degraded mode
-})
+agentService
+  .initialize()
+  .then(() => {
+    console.log('🤖 Multi-agent system ready')
+  })
+  .catch((error) => {
+    console.error('❌ Failed to initialize agent system:', error)
+    // App will still work in degraded mode
+  })
 
 // Handle unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason)
-  
+
   // Prevent the default browser behavior
   event.preventDefault()
 })
@@ -90,7 +93,7 @@ window.addEventListener('error', (event) => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (event) => {
     const { type, data } = event.data
-    
+
     switch (type) {
       case 'BACKGROUND_SYNC':
         console.log('📤 Background sync completed:', data)
@@ -111,12 +114,14 @@ if ('performance' in window && 'getEntriesByType' in window.performance) {
     // Log performance metrics
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
     const paint = performance.getEntriesByType('paint')
-    
+
     console.log('📊 Performance Metrics:', {
       loadTime: Math.round(navigation.loadEventEnd - navigation.loadEventStart),
-      domContentLoaded: Math.round(navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart),
-      firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime,
-      largestContentfulPaint: paint.find(p => p.name === 'largest-contentful-paint')?.startTime
+      domContentLoaded: Math.round(
+        navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+      ),
+      firstContentfulPaint: paint.find((p) => p.name === 'first-contentful-paint')?.startTime,
+      largestContentfulPaint: paint.find((p) => p.name === 'largest-contentful-paint')?.startTime,
     })
   })
 }
@@ -131,12 +136,12 @@ window.addEventListener('beforeinstallprompt', (event) => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     console.log('📱 App moved to background')
-    
+
     // Request background sync for pending data
     pwaManager.requestBackgroundSync('research-data-sync')
   } else {
     console.log('👀 App is visible again')
-    
+
     // Check for updates when app becomes visible
     pwaManager.checkForUpdates()
   }
@@ -145,19 +150,19 @@ document.addEventListener('visibilitychange', () => {
 // Network information API (if available)
 if ('connection' in navigator) {
   const connection = (navigator as any).connection
-  
+
   console.log('🌐 Network Info:', {
     effectiveType: connection.effectiveType,
     downlink: connection.downlink,
     rtt: connection.rtt,
-    saveData: connection.saveData
+    saveData: connection.saveData,
   })
-  
+
   // Adjust agent service based on connection quality
   if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
     agentService.updateConfig({
       maxRetries: 2,
-      retryDelay: 2000
+      retryDelay: 2000,
     })
     console.log('📱 Adjusted for slow connection')
   }
@@ -169,7 +174,7 @@ if ('memory' in performance) {
   console.log('💾 Memory Usage:', {
     used: Math.round(memory.usedJSHeapSize / 1024 / 1024) + ' MB',
     total: Math.round(memory.totalJSHeapSize / 1024 / 1024) + ' MB',
-    limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) + ' MB'
+    limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) + ' MB',
   })
 }
 
@@ -179,7 +184,7 @@ if ('storage' in navigator && 'estimate' in navigator.storage) {
     console.log('💾 Storage Usage:', {
       used: Math.round((estimate.usage || 0) / 1024 / 1024) + ' MB',
       quota: Math.round((estimate.quota || 0) / 1024 / 1024) + ' MB',
-      percentage: Math.round(((estimate.usage || 0) / (estimate.quota || 1)) * 100) + '%'
+      percentage: Math.round(((estimate.usage || 0) / (estimate.quota || 1)) * 100) + '%',
     })
   })
 }
@@ -194,7 +199,6 @@ console.log('🤖 Agent Service Status:', agentService.isServiceReady() ? 'Ready
 
 // Expose services to window for debugging (only in development)
 if (import.meta.env.DEV) {
-  (window as any).pwaManager = pwaManager
-  (window as any).agentService = agentService
+  ;(window as any).pwaManager = pwaManager(window as any).agentService = agentService
   console.log('🔧 Development mode: Services exposed to window object')
 }

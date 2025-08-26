@@ -1,4 +1,9 @@
-import { getAgentManager, type AgentManager, type ChatRequest, type ChatResponse } from '../agents/AgentManager'
+import {
+  getAgentManager,
+  type AgentManager,
+  type ChatRequest,
+  type ChatResponse,
+} from '../agents/AgentManager'
 
 interface AgentServiceConfig {
   enableOfflineMode: boolean
@@ -19,7 +24,7 @@ class AgentService {
       cacheResponses: true,
       maxRetries: 3,
       retryDelay: 1000,
-      ...config
+      ...config,
     }
 
     // Initialize agent manager
@@ -30,7 +35,7 @@ class AgentService {
       enableDataSourcing: true,
       enableAnalytics: true,
       defaultTimeout: 30000,
-      maxConcurrentRequests: 5
+      maxConcurrentRequests: 5,
     })
   }
 
@@ -49,19 +54,20 @@ class AgentService {
 
       // Check system health
       const health = await this.agentManager.checkSystemHealth()
-      
+
       if (!health.healthy) {
         console.warn('⚠️ Some agents are not healthy, but system will operate in degraded mode')
       }
 
       console.log('✅ Multi-Agent system initialized successfully')
-      console.log(`📊 System Status: ${health.overall.healthyAgents}/${health.overall.totalAgents} agents healthy`)
-      
-      this.isInitialized = true
+      console.log(
+        `📊 System Status: ${health.overall.healthyAgents}/${health.overall.totalAgents} agents healthy`,
+      )
 
+      this.isInitialized = true
     } catch (error) {
       console.error('❌ Failed to initialize agent service:', error)
-      
+
       if (this.config.enableOfflineMode) {
         console.log('🔄 Falling back to offline mode')
         this.isInitialized = true // Allow operation in degraded mode
@@ -79,9 +85,9 @@ class AgentService {
       userId?: string
       specialization?: string
       researchPaper?: any
-      conversationHistory?: Array<{ type: 'user' | 'assistant', content: string }>
+      conversationHistory?: Array<{ type: 'user' | 'assistant'; content: string }>
       metadata?: Record<string, any>
-    } = {}
+    } = {},
   ): Promise<ChatResponse> {
     await this.initialize()
 
@@ -95,29 +101,28 @@ class AgentService {
       metadata: {
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
-        ...options.metadata
-      }
+        ...options.metadata,
+      },
     }
 
     let lastError: Error | null = null
-    
+
     // Retry logic
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
         console.log(`🤖 Processing message (attempt ${attempt}/${this.config.maxRetries})`)
-        
+
         const response = await this.agentManager.processChat(request)
-        
+
         // Log successful processing
         console.log(`✅ Message processed successfully`, {
           confidence: response.confidence,
           agentsUsed: response.metadata.agentsUsed,
           processingTime: response.metadata.processingTime,
-          cached: response.metadata.cached
+          cached: response.metadata.cached,
         })
 
         return response
-
       } catch (error) {
         lastError = error as Error
         console.warn(`⚠️ Attempt ${attempt} failed:`, error.message)
@@ -130,9 +135,10 @@ class AgentService {
 
     // All retries failed, return error response
     console.error('❌ All processing attempts failed:', lastError?.message)
-    
+
     return {
-      content: 'I apologize, but I\'m having trouble processing your request right now. Please try again in a moment.',
+      content:
+        "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
       confidence: 0.1,
       sources: [],
       metadata: {
@@ -140,9 +146,9 @@ class AgentService {
         processingTime: 100,
         cached: false,
         validated: false,
-        errorRecovered: true
+        errorRecovered: true,
       },
-      error: lastError?.message
+      error: lastError?.message,
     }
   }
 
@@ -154,27 +160,32 @@ class AgentService {
       researchPaper?: any
       specialization?: string
       userId?: string
-    } = {}
+    } = {},
   ): Promise<ChatResponse> {
     const actionMessages = {
-      summarize: 'Please provide a comprehensive summary of this research paper, highlighting the key findings and methodology.',
-      methodology: 'Can you explain the research methodologies used in this study and evaluate their appropriateness?',
-      critique: 'What are the strengths and limitations of this research? Please provide a balanced critique.',
-      related: 'Can you find and show me related studies on this topic? Focus on recent, high-quality research.',
+      summarize:
+        'Please provide a comprehensive summary of this research paper, highlighting the key findings and methodology.',
+      methodology:
+        'Can you explain the research methodologies used in this study and evaluate their appropriateness?',
+      critique:
+        'What are the strengths and limitations of this research? Please provide a balanced critique.',
+      related:
+        'Can you find and show me related studies on this topic? Focus on recent, high-quality research.',
       implications: 'What are the clinical implications of these research findings?',
-      statistics: 'Can you explain the statistical methods and results presented in this study?'
+      statistics: 'Can you explain the statistical methods and results presented in this study?',
     }
 
-    const message = actionMessages[action as keyof typeof actionMessages] || 
-                   `Please help me analyze this research with focus on: ${action}`
+    const message =
+      actionMessages[action as keyof typeof actionMessages] ||
+      `Please help me analyze this research with focus on: ${action}`
 
     return this.processMessage(message, sessionId, {
       ...options,
       metadata: {
         type: 'quick_action',
         action,
-        automated: true
-      }
+        automated: true,
+      },
     })
   }
 
@@ -232,11 +243,11 @@ class AgentService {
   // Configuration management
   updateConfig(newConfig: Partial<AgentServiceConfig>): void {
     this.config = { ...this.config, ...newConfig }
-    
+
     if (this.isInitialized) {
       this.agentManager.updateConfig({
         enableCaching: this.config.cacheResponses,
-        maxConcurrentRequests: 5
+        maxConcurrentRequests: 5,
       })
     }
   }
@@ -249,7 +260,7 @@ class AgentService {
   // Graceful shutdown
   async shutdown(): Promise<void> {
     if (!this.isInitialized) return
-    
+
     console.log('🛑 Shutting down agent service...')
     await this.agentManager.shutdown()
     this.isInitialized = false
@@ -259,7 +270,7 @@ class AgentService {
 
   // Utility methods
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   // Performance monitoring
@@ -276,24 +287,24 @@ class AgentService {
         successRate: 0,
         averageResponseTime: 0,
         cacheHitRate: 0,
-        agentHealth: {}
+        agentHealth: {},
       }
     }
 
     const analytics = this.getAnalytics()
     const cacheInfo = this.getCacheInfo()
-    
+
     return {
       totalRequests: analytics?.totalRequests || 0,
-      successRate: analytics?.totalRequests > 0 
-        ? (analytics.successfulRequests / analytics.totalRequests) 
-        : 0,
+      successRate:
+        analytics?.totalRequests > 0 ? analytics.successfulRequests / analytics.totalRequests : 0,
       averageResponseTime: analytics?.averageResponseTime || 0,
       cacheHitRate: cacheInfo?.stats?.hitRate || 0,
-      agentHealth: analytics?.agentHealth?.reduce((acc: Record<string, boolean>, agent: any) => {
-        acc[agent.id] = agent.healthy
-        return acc
-      }, {}) || {}
+      agentHealth:
+        analytics?.agentHealth?.reduce((acc: Record<string, boolean>, agent: any) => {
+          acc[agent.id] = agent.healthy
+          return acc
+        }, {}) || {},
     }
   }
 
@@ -309,7 +320,7 @@ class AgentService {
     const health = await this.getSystemHealth()
     const analytics = this.getAnalytics()
     const cacheInfo = this.getCacheInfo()
-    
+
     const issues: string[] = []
     const recommendations: string[] = []
 
@@ -337,7 +348,7 @@ class AgentService {
       overallHealth: health.healthy && issues.length === 0,
       issues,
       recommendations,
-      agentStatuses: health.agents
+      agentStatuses: health.agents,
     }
   }
 }

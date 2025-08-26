@@ -27,7 +27,9 @@ const suggestedPaper = ref({
   type: 'Research Article',
 })
 
-const chatMessages = ref([] as Array<{type: 'user' | 'assistant', content: string, id?: string, metadata?: any}>)
+const chatMessages = ref(
+  [] as Array<{ type: 'user' | 'assistant'; content: string; id?: string; metadata?: any }>,
+)
 const currentChatSession = ref<string | null>(null)
 const isLoading = ref(false)
 const lastAssistantMessage = ref('')
@@ -77,7 +79,7 @@ const handleQuickAction = async (action: string) => {
     const response = await agentService.processQuickAction(action, currentChatSession.value, {
       researchPaper: currentPaper.value,
       specialization: 'medical_research',
-      userId: 'demo_user'
+      userId: 'demo_user',
     })
 
     // Add response to chat
@@ -89,13 +91,12 @@ const handleQuickAction = async (action: string) => {
         confidence: response.confidence,
         sources: response.sources,
         agentsUsed: response.metadata.agentsUsed,
-        cached: response.metadata.cached
-      }
+        cached: response.metadata.cached,
+      },
     })
 
     lastAssistantMessage.value = response.content
     updateApiStatus()
-
   } catch (error) {
     console.error('Quick action error:', error)
     apiStatus.value = 'offline'
@@ -111,26 +112,31 @@ const handleQuickActionFallback = (action: string) => {
   let response = ''
   switch (action) {
     case 'summarize':
-      response = 'This study demonstrates that mRNA vaccines show promising results in cancer immunotherapy with improved survival rates compared to traditional treatments. The research involved 2,847 patients and showed significant improvements over traditional chemotherapy protocols.'
+      response =
+        'This study demonstrates that mRNA vaccines show promising results in cancer immunotherapy with improved survival rates compared to traditional treatments. The research involved 2,847 patients and showed significant improvements over traditional chemotherapy protocols.'
       break
     case 'methodology':
-      response = 'The study employed a randomized, double-blind, placebo-controlled design across 45 medical centers with rigorous statistical analysis using Kaplan-Meier survival curves. The methodology follows gold standard clinical trial protocols.'
+      response =
+        'The study employed a randomized, double-blind, placebo-controlled design across 45 medical centers with rigorous statistical analysis using Kaplan-Meier survival curves. The methodology follows gold standard clinical trial protocols.'
       break
     case 'critique':
-      response = 'While the results are promising, the study could benefit from longer follow-up periods and more diverse patient populations to strengthen the evidence base. The sample size is adequate but geographic diversity could be improved.'
+      response =
+        'While the results are promising, the study could benefit from longer follow-up periods and more diverse patient populations to strengthen the evidence base. The sample size is adequate but geographic diversity could be improved.'
       break
     case 'related':
-      response = 'I found 23 related studies on mRNA cancer vaccines. Here are the most relevant ones:\n\n1. "mRNA-based immunotherapy for cancer treatment" (Nature, 2023)\n2. "Efficacy of personalized mRNA vaccines" (Cell, 2023)\n3. "Safety profile of mRNA therapeutics" (NEJM, 2024)\n\nWould you like me to provide more details about any of these studies?'
+      response =
+        'I found 23 related studies on mRNA cancer vaccines. Here are the most relevant ones:\n\n1. "mRNA-based immunotherapy for cancer treatment" (Nature, 2023)\n2. "Efficacy of personalized mRNA vaccines" (Cell, 2023)\n3. "Safety profile of mRNA therapeutics" (NEJM, 2024)\n\nWould you like me to provide more details about any of these studies?'
       lastAssistantMessage.value = response
       break
     default:
-      response = 'I can help you analyze this research paper in several ways: summarize key findings, explain methodologies, critique the study design, or find related research. What interests you most?'
+      response =
+        'I can help you analyze this research paper in several ways: summarize key findings, explain methodologies, critique the study design, or find related research. What interests you most?'
   }
 
   chatMessages.value.push({
     type: 'assistant',
     content: response,
-    id: Date.now().toString()
+    id: Date.now().toString(),
   })
 }
 
@@ -147,7 +153,7 @@ const handleChatMessage = async (message: string) => {
   chatMessages.value.push({
     type: 'user',
     content: message,
-    id: Date.now().toString()
+    id: Date.now().toString(),
   })
 
   isLoading.value = true
@@ -163,7 +169,7 @@ const handleChatMessage = async (message: string) => {
       specialization: 'medical_research',
       researchPaper: currentPaper.value,
       conversationHistory: chatMessages.value.slice(-10), // Last 10 messages for context
-      userId: 'demo_user'
+      userId: 'demo_user',
     })
 
     // Add assistant response
@@ -176,13 +182,12 @@ const handleChatMessage = async (message: string) => {
         sources: response.sources,
         agentsUsed: response.metadata.agentsUsed,
         cached: response.metadata.cached,
-        validated: response.metadata.validated
-      }
+        validated: response.metadata.validated,
+      },
     })
 
     lastAssistantMessage.value = response.content
     updateApiStatus()
-
   } catch (error) {
     console.error('Chat message error:', error)
     apiStatus.value = 'offline'
@@ -201,27 +206,36 @@ const handleChatMessageFallback = (message: string) => {
   // Handle follow-up questions contextually
   if (lowerMessage.includes('yes') || lowerMessage.includes('show me')) {
     if (lastAssistantMessage.value.includes('related studies')) {
-      response = 'Here are the detailed abstracts of the most relevant studies:\n\n**Study 1: mRNA-based immunotherapy for cancer treatment**\n*Authors: Chen et al., Nature 2023*\nThis comprehensive review analyzes 45 clinical trials using mRNA vaccines for various cancer types...\n\n**Study 2: Efficacy of personalized mRNA vaccines**\n*Authors: Rodriguez et al., Cell 2023*\nA breakthrough study showing 78% response rates in personalized mRNA vaccine trials...\n\nWould you like me to analyze any specific aspect of these studies?'
+      response =
+        'Here are the detailed abstracts of the most relevant studies:\n\n**Study 1: mRNA-based immunotherapy for cancer treatment**\n*Authors: Chen et al., Nature 2023*\nThis comprehensive review analyzes 45 clinical trials using mRNA vaccines for various cancer types...\n\n**Study 2: Efficacy of personalized mRNA vaccines**\n*Authors: Rodriguez et al., Cell 2023*\nA breakthrough study showing 78% response rates in personalized mRNA vaccine trials...\n\nWould you like me to analyze any specific aspect of these studies?'
     } else {
-      response = 'Certainly! I\'d be happy to provide more detailed information. Could you specify what aspect you\'d like me to elaborate on?'
+      response =
+        "Certainly! I'd be happy to provide more detailed information. Could you specify what aspect you'd like me to elaborate on?"
     }
   } else if (lowerMessage.includes('no') || lowerMessage.includes('not interested')) {
-    response = 'No problem! Is there anything else about this research paper you\'d like to explore? I can help with methodology analysis, statistical interpretation, or finding alternative studies.'
+    response =
+      "No problem! Is there anything else about this research paper you'd like to explore? I can help with methodology analysis, statistical interpretation, or finding alternative studies."
   } else if (lowerMessage.includes('methodology') || lowerMessage.includes('method')) {
-    response = 'The study methodology includes:\n\n• **Design**: Randomized, double-blind, placebo-controlled trial\n• **Population**: 2,847 patients across multiple cancer types\n• **Duration**: 24-month follow-up period\n• **Primary endpoint**: Overall survival rates\n• **Statistical analysis**: Kaplan-Meier survival curves, Cox regression\n\nWould you like me to explain any specific methodological aspect in more detail?'
+    response =
+      'The study methodology includes:\n\n• **Design**: Randomized, double-blind, placebo-controlled trial\n• **Population**: 2,847 patients across multiple cancer types\n• **Duration**: 24-month follow-up period\n• **Primary endpoint**: Overall survival rates\n• **Statistical analysis**: Kaplan-Meier survival curves, Cox regression\n\nWould you like me to explain any specific methodological aspect in more detail?'
   } else if (lowerMessage.includes('result') || lowerMessage.includes('finding')) {
-    response = 'Key findings from this study:\n\n• **Primary outcome**: Significant improvement in overall survival (HR: 0.73, p<0.001)\n• **Safety profile**: Reduced adverse effects vs. traditional chemotherapy\n• **Response rate**: 68% overall response rate\n• **Duration**: Median response duration of 18.2 months\n\nThe results suggest mRNA vaccines could become a new standard of care. Would you like me to elaborate on any specific finding?'
+    response =
+      'Key findings from this study:\n\n• **Primary outcome**: Significant improvement in overall survival (HR: 0.73, p<0.001)\n• **Safety profile**: Reduced adverse effects vs. traditional chemotherapy\n• **Response rate**: 68% overall response rate\n• **Duration**: Median response duration of 18.2 months\n\nThe results suggest mRNA vaccines could become a new standard of care. Would you like me to elaborate on any specific finding?'
   } else if (lowerMessage.includes('statistic') || lowerMessage.includes('data')) {
-    response = 'Statistical highlights:\n\n• **Sample size**: n=2,847 (adequately powered for primary endpoint)\n• **Confidence intervals**: 95% CI provided for all primary outcomes\n• **P-values**: All primary endpoints achieved statistical significance (p<0.05)\n• **Effect size**: Clinically meaningful improvement (>20% relative risk reduction)\n\nWould you like me to explain the statistical methods used or interpret specific results?'
+    response =
+      'Statistical highlights:\n\n• **Sample size**: n=2,847 (adequately powered for primary endpoint)\n• **Confidence intervals**: 95% CI provided for all primary outcomes\n• **P-values**: All primary endpoints achieved statistical significance (p<0.05)\n• **Effect size**: Clinically meaningful improvement (>20% relative risk reduction)\n\nWould you like me to explain the statistical methods used or interpret specific results?'
   } else {
-    response = 'I understand you\'re asking about "' + message + '". Based on this research paper, I can help you explore:\n\n• Study design and methodology\n• Key findings and results\n• Statistical analysis and interpretation\n• Limitations and future research directions\n• Related studies in this field\n\nWhat specific aspect interests you most?'
+    response =
+      'I understand you\'re asking about "' +
+      message +
+      '". Based on this research paper, I can help you explore:\n\n• Study design and methodology\n• Key findings and results\n• Statistical analysis and interpretation\n• Limitations and future research directions\n• Related studies in this field\n\nWhat specific aspect interests you most?'
   }
 
   setTimeout(() => {
     chatMessages.value.push({
       type: 'assistant',
       content: response,
-      id: Date.now().toString()
+      id: Date.now().toString(),
     })
     lastAssistantMessage.value = response
   }, 1000)
@@ -312,7 +326,6 @@ const initializeApp = async () => {
     }
 
     console.log('✅ Multi-Agent Medical Research System initialized')
-
   } catch (error) {
     console.error('❌ Initialization failed:', error)
     apiStatus.value = 'offline'
@@ -435,7 +448,10 @@ onMounted(() => {
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <!-- Research Papers Section -->
-      <div v-if="activeSection === 'research'" class="flex flex-col lg:grid lg:grid-cols-2 gap-6 min-h-[calc(100vh-200px)]">
+      <div
+        v-if="activeSection === 'research'"
+        class="flex flex-col lg:grid lg:grid-cols-2 gap-6 min-h-[calc(100vh-200px)]"
+      >
         <!-- Left Column: Paper Content -->
         <div class="space-y-6 overflow-y-auto lg:pr-2 order-1">
           <!-- Research Paper Card -->
@@ -443,7 +459,7 @@ onMounted(() => {
             :paper="currentPaper"
             @toggle-bookmark="toggleBookmark"
             @action="handlePaperAction"
-            @chat-toggle="() => showChat = true"
+            @chat-toggle="() => (showChat = true)"
           />
 
           <!-- Date Indicator -->
@@ -465,12 +481,14 @@ onMounted(() => {
         <div class="order-2 lg:sticky lg:top-6">
           <!-- Mobile Chat Toggle Button -->
           <div class="lg:hidden mb-4">
-            <button
-              @click="showChat = !showChat"
-              class="w-full btn btn-primary"
-            >
+            <button @click="showChat = !showChat" class="w-full btn btn-primary">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
               </svg>
               {{ showChat ? 'Hide Chat' : 'Open Chat Assistant' }}
             </button>
@@ -481,42 +499,52 @@ onMounted(() => {
             class="card flex flex-col"
             :class="{
               'h-96 lg:h-[calc(100vh-240px)]': true,
-              'hidden lg:flex': !showChat
+              'hidden lg:flex': !showChat,
             }"
           >
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center space-x-2">
                 <h3 class="text-lg font-semibold text-gray-900">Research Assistant</h3>
                 <div
-                v-if="apiStatus === 'online'"
-                class="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs"
-                title="Multi-Agent AI System Online"
-              >
-                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Multi-Agent AI</span>
-              </div>
-              <div
-                v-else-if="apiStatus === 'offline'"
-                class="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs"
-                title="Offline Mode - Using cached responses"
-              >
-                <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span>Offline Mode</span>
-              </div>
-              <div
-                v-else
-                class="flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
-              >
-                <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                <span>Initializing Agents...</span>
-              </div>
+                  v-if="apiStatus === 'online'"
+                  class="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs"
+                  title="Multi-Agent AI System Online"
+                >
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Multi-Agent AI</span>
+                </div>
+                <div
+                  v-else-if="apiStatus === 'offline'"
+                  class="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs"
+                  title="Offline Mode - Using cached responses"
+                >
+                  <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <span>Offline Mode</span>
+                </div>
+                <div
+                  v-else
+                  class="flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
+                >
+                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                  <span>Initializing Agents...</span>
+                </div>
               </div>
               <button
                 @click="showChat = false"
                 class="p-1 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
               >
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  class="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -524,16 +552,41 @@ onMounted(() => {
             <!-- Chat Messages -->
             <div class="flex-1 overflow-y-auto mb-4 space-y-4 scrollbar-hide">
               <div v-if="chatMessages.length === 0" class="text-center py-8 text-gray-500">
-                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                <svg
+                  class="w-12 h-12 mx-auto mb-3 text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
                 </svg>
                 <p class="text-sm">Start a conversation with the AI assistant</p>
-                <p class="text-xs text-gray-400 mt-1">Use quick actions or type your questions below</p>
-                <div v-if="apiStatus === 'offline'" class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p class="text-xs text-yellow-700">💡 Multi-agent system in offline mode - using cached medical research data!</p>
+                <p class="text-xs text-gray-400 mt-1">
+                  Use quick actions or type your questions below
+                </p>
+                <div
+                  v-if="apiStatus === 'offline'"
+                  class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg"
+                >
+                  <p class="text-xs text-yellow-700">
+                    💡 Multi-agent system in offline mode - using cached medical research data!
+                  </p>
                 </div>
-                <div v-if="systemHealth && systemHealth.overall" class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p class="text-xs text-blue-700">🤖 {{ systemHealth.overall.healthyAgents }}/{{ systemHealth.overall.totalAgents }} AI agents active</p>
+                <div
+                  v-if="systemHealth && systemHealth.overall"
+                  class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg"
+                >
+                  <p class="text-xs text-blue-700">
+                    🤖 {{ systemHealth.overall.healthyAgents }}/{{
+                      systemHealth.overall.totalAgents
+                    }}
+                    AI agents active
+                  </p>
                 </div>
               </div>
 
@@ -563,9 +616,13 @@ onMounted(() => {
 
                 <!-- Loading indicator -->
                 <div v-if="isLoading" class="flex justify-start mb-4">
-                  <div class="bg-white text-gray-800 border border-gray-200 shadow-sm px-4 py-3 rounded-2xl">
+                  <div
+                    class="bg-white text-gray-800 border border-gray-200 shadow-sm px-4 py-3 rounded-2xl"
+                  >
                     <div class="flex items-center space-x-2">
-                      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+                      <div
+                        class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"
+                      ></div>
                       <span class="text-sm text-gray-600">AI is thinking...</span>
                     </div>
                   </div>
@@ -585,7 +642,12 @@ onMounted(() => {
                 />
                 <button @click="sendMessage" class="btn btn-primary shrink-0">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
                   </svg>
                 </button>
               </div>

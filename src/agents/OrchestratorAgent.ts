@@ -27,8 +27,8 @@ export class OrchestratorAgent extends BaseAgent {
         description: 'Coordinates multi-agent workflows',
         inputTypes: ['any'],
         outputTypes: ['any'],
-        dependencies: []
-      }
+        dependencies: [],
+      },
     ])
 
     this.registry = registry
@@ -37,40 +37,39 @@ export class OrchestratorAgent extends BaseAgent {
       timeoutMs: 30000,
       fallbackEnabled: true,
       circuitBreakerThreshold: 5,
-      ...config
+      ...config,
     }
   }
 
   async process(context: AgentContext): Promise<AgentResponse> {
     const startTime = Date.now()
-    
+
     try {
-      this.log('info', 'Starting orchestration', { 
+      this.log('info', 'Starting orchestration', {
         sessionId: context.sessionId,
-        requestId: context.requestId 
+        requestId: context.requestId,
       })
 
       // Determine the execution plan based on context
       const plan = this.createExecutionPlan(context)
-      
+
       // Execute the plan
       const result = await this.executePlan(plan, context)
-      
+
       // Record execution history
       this.recordExecution(context.requestId, plan, result, Date.now() - startTime)
 
       return this.createResponse(true, result, undefined, {
         processingTime: Date.now() - startTime,
         confidence: this.calculateConfidence(result),
-        executionPlan: plan
+        executionPlan: plan,
       })
-
     } catch (error) {
       this.log('error', 'Orchestration failed', { error: error.message, context })
-      
+
       return this.createResponse(false, undefined, `Orchestration failed: ${error.message}`, {
         processingTime: Date.now() - startTime,
-        confidence: 0
+        confidence: 0,
       })
     }
   }
@@ -91,8 +90,8 @@ export class OrchestratorAgent extends BaseAgent {
         totalAgents: totalCount,
         healthyAgents: healthyCount,
         unhealthyAgents: totalCount - healthyCount,
-        agentHealth: Object.fromEntries(agentHealth)
-      }
+        agentHealth: Object.fromEntries(agentHealth),
+      },
     }
   }
 
@@ -102,7 +101,7 @@ export class OrchestratorAgent extends BaseAgent {
       agents: [],
       parallel: false,
       fallbackChain: [],
-      priority: 1
+      priority: 1,
     }
 
     // Determine which agents to use based on context
@@ -143,22 +142,21 @@ export class OrchestratorAgent extends BaseAgent {
       try {
         this.log('info', `Executing agent: ${agentId}`)
         const agentResult = await this.executeWithTimeout(agent, context)
-        
+
         if (agentResult.success) {
           result = agentResult.data
           this.resetCircuitBreaker(agentId)
-          
+
           // Update context for next agent
           context.metadata = {
             ...context.metadata,
             previousAgent: agentId,
-            previousResult: result
+            previousResult: result,
           }
         } else {
           lastError = new Error(agentResult.error || 'Agent execution failed')
           this.recordFailure(agentId)
         }
-
       } catch (error) {
         this.log('error', `Agent execution failed: ${agentId}`, error)
         lastError = error as Error
@@ -169,7 +167,7 @@ export class OrchestratorAgent extends BaseAgent {
     // Execute fallback chain if needed
     if (!result && plan.fallbackChain.length > 0) {
       this.log('info', 'Executing fallback chain')
-      
+
       for (const fallbackAgentId of plan.fallbackChain) {
         const agent = this.registry.getAgent(fallbackAgentId)
         if (agent && agent.isHealthy()) {
@@ -179,8 +177,8 @@ export class OrchestratorAgent extends BaseAgent {
               metadata: {
                 ...context.metadata,
                 fallbackMode: true,
-                originalError: lastError?.message
-              }
+                originalError: lastError?.message,
+              },
             })
 
             if (fallbackResult.success) {
@@ -202,18 +200,22 @@ export class OrchestratorAgent extends BaseAgent {
   }
 
   // Execute agent with timeout
-  private async executeWithTimeout(agent: BaseAgent, context: AgentContext): Promise<AgentResponse> {
+  private async executeWithTimeout(
+    agent: BaseAgent,
+    context: AgentContext,
+  ): Promise<AgentResponse> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error(`Agent timeout: ${agent.getId()}`))
       }, this.config.timeoutMs)
 
-      agent.process(context)
-        .then(result => {
+      agent
+        .process(context)
+        .then((result) => {
           clearTimeout(timeout)
           resolve(result)
         })
-        .catch(error => {
+        .catch((error) => {
           clearTimeout(timeout)
           reject(error)
         })
@@ -250,15 +252,19 @@ export class OrchestratorAgent extends BaseAgent {
 
   // Utility methods for context analysis
   private isResearchQuery(context: AgentContext): boolean {
-    return !!(context.researchPaper || 
-              context.metadata?.type === 'research' ||
-              context.metadata?.query?.includes('research'))
+    return !!(
+      context.researchPaper ||
+      context.metadata?.type === 'research' ||
+      context.metadata?.query?.includes('research')
+    )
   }
 
   private isChatMessage(context: AgentContext): boolean {
-    return !!(context.conversation || 
-              context.metadata?.type === 'chat' ||
-              context.metadata?.message)
+    return !!(
+      context.conversation ||
+      context.metadata?.type === 'chat' ||
+      context.metadata?.message
+    )
   }
 
   private calculateConfidence(result: any): number {
@@ -267,7 +273,12 @@ export class OrchestratorAgent extends BaseAgent {
     return 0.8 // Default confidence
   }
 
-  private recordExecution(requestId: string, plan: ExecutionPlan, result: any, duration: number): void {
+  private recordExecution(
+    requestId: string,
+    plan: ExecutionPlan,
+    result: any,
+    duration: number,
+  ): void {
     if (!this.executionHistory.has(requestId)) {
       this.executionHistory.set(requestId, [])
     }
@@ -277,7 +288,7 @@ export class OrchestratorAgent extends BaseAgent {
       plan,
       result,
       duration,
-      success: !!result
+      success: !!result,
     })
 
     // Keep only last 100 executions per request
@@ -297,11 +308,11 @@ export class OrchestratorAgent extends BaseAgent {
       totalExecutions: 0,
       successfulExecutions: 0,
       averageDuration: 0,
-      circuitBreakerStatus: Object.fromEntries(this.circuitBreakers)
+      circuitBreakerStatus: Object.fromEntries(this.circuitBreakers),
     }
 
     let totalDuration = 0
-    
+
     for (const executions of this.executionHistory.values()) {
       for (const execution of executions) {
         stats.totalExecutions++

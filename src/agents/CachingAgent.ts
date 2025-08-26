@@ -45,22 +45,22 @@ export class CachingAgent extends BaseAgent {
         description: 'Retrieves cached responses and data',
         inputTypes: ['cache_key', 'query'],
         outputTypes: ['cached_data', 'cache_miss'],
-        dependencies: []
+        dependencies: [],
       },
       {
         name: 'cache_storage',
         description: 'Stores responses in multi-layer cache',
         inputTypes: ['data', 'cache_key'],
         outputTypes: ['cache_stored'],
-        dependencies: []
+        dependencies: [],
       },
       {
         name: 'predictive_caching',
         description: 'Pre-caches likely needed data',
         inputTypes: ['user_pattern', 'context'],
         outputTypes: ['predictive_cache'],
-        dependencies: []
-      }
+        dependencies: [],
+      },
     ])
 
     this.config = {
@@ -73,7 +73,7 @@ export class CachingAgent extends BaseAgent {
       maxMemoryCacheSize: 50 * 1024 * 1024, // 50MB
       enablePredictiveCaching: true,
       enableCompression: false,
-      ...config
+      ...config,
     }
 
     this.initializeRedis()
@@ -86,9 +86,9 @@ export class CachingAgent extends BaseAgent {
       const operation = context.metadata?.operation || 'get'
       const cacheKey = this.generateCacheKey(context)
 
-      this.log('info', `Cache operation: ${operation}`, { 
+      this.log('info', `Cache operation: ${operation}`, {
         cacheKey,
-        sessionId: context.sessionId 
+        sessionId: context.sessionId,
       })
 
       let result: any
@@ -117,15 +117,14 @@ export class CachingAgent extends BaseAgent {
         confidence: result?.cached ? 1.0 : 0.5,
         cacheKey,
         operation,
-        cacheStats: this.getCacheStats()
+        cacheStats: this.getCacheStats(),
       })
-
     } catch (error) {
       this.log('error', 'Cache operation failed', error)
-      
+
       return this.createResponse(false, undefined, `Cache operation failed: ${error.message}`, {
         processingTime: Date.now() - startTime,
-        confidence: 0
+        confidence: 0,
       })
     }
   }
@@ -140,7 +139,7 @@ export class CachingAgent extends BaseAgent {
 
   async getHealthStatus(): Promise<{ healthy: boolean; details?: any }> {
     const memoryUsage = (this.currentMemorySize / this.config.maxMemoryCacheSize) * 100
-    
+
     return {
       healthy: memoryUsage < 90,
       details: {
@@ -148,8 +147,8 @@ export class CachingAgent extends BaseAgent {
         memoryUsagePercent: memoryUsage,
         redisConnected: !!this.redisClient,
         cacheStats: this.cacheStats,
-        config: this.config
-      }
+        config: this.config,
+      },
     }
   }
 
@@ -173,10 +172,10 @@ export class CachingAgent extends BaseAgent {
 
     // Include user context
     if (context.userId) components.push(`user:${context.userId}`)
-    
+
     // Include specialization
     if (context.specialization) components.push(`spec:${context.specialization}`)
-    
+
     // Include research paper context
     if (context.researchPaper?.title) {
       const paperKey = context.researchPaper.title.substring(0, 50).replace(/\s+/g, '_')
@@ -320,15 +319,15 @@ export class CachingAgent extends BaseAgent {
       }
     }
 
-    this.log('info', 'Predictive caching completed', { 
-      predictions: predictions.length, 
-      cached: cachedPredictions.length 
+    this.log('info', 'Predictive caching completed', {
+      predictions: predictions.length,
+      cached: cachedPredictions.length,
     })
 
-    return { 
-      predictive: true, 
+    return {
+      predictive: true,
       predictions: predictions.length,
-      cached: cachedPredictions.length
+      cached: cachedPredictions.length,
     }
   }
 
@@ -340,7 +339,7 @@ export class CachingAgent extends BaseAgent {
     // Check if expired
     const now = Date.now()
     const ageSeconds = (now - entry.timestamp.getTime()) / 1000
-    
+
     if (ageSeconds > entry.ttl) {
       this.currentMemorySize -= entry.size || 0
       this.memoryCache.delete(key)
@@ -372,7 +371,7 @@ export class CachingAgent extends BaseAgent {
         ttl: ttlSeconds,
         accessCount: 0,
         lastAccessed: new Date(),
-        size
+        size,
       }
 
       this.memoryCache.set(key, entry)
@@ -411,7 +410,7 @@ export class CachingAgent extends BaseAgent {
 
       const parsed = JSON.parse(item)
       const now = Date.now()
-      
+
       if (now > parsed.expires) {
         localStorage.removeItem(`medresearch_cache_${key}`)
         return null
@@ -429,7 +428,7 @@ export class CachingAgent extends BaseAgent {
     try {
       const item = {
         data,
-        expires: Date.now() + (ttlSeconds * 1000)
+        expires: Date.now() + ttlSeconds * 1000,
       }
 
       localStorage.setItem(`medresearch_cache_${key}`, JSON.stringify(item))
@@ -460,8 +459,10 @@ export class CachingAgent extends BaseAgent {
 
     for (const [key, entry] of this.memoryCache) {
       const accessTime = entry.lastAccessed.getTime()
-      if (entry.accessCount < leastUsedCount || 
-          (entry.accessCount === leastUsedCount && accessTime < oldestAccess)) {
+      if (
+        entry.accessCount < leastUsedCount ||
+        (entry.accessCount === leastUsedCount && accessTime < oldestAccess)
+      ) {
         leastUsedKey = key
         leastUsedCount = entry.accessCount
         oldestAccess = accessTime
@@ -482,13 +483,15 @@ export class CachingAgent extends BaseAgent {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(36)
   }
 
-  private generatePredictions(context: AgentContext): Array<{ key: string, type: string, confidence: number }> {
+  private generatePredictions(
+    context: AgentContext,
+  ): Array<{ key: string; type: string; confidence: number }> {
     const predictions = []
 
     // Predict related research papers
@@ -496,7 +499,7 @@ export class CachingAgent extends BaseAgent {
       predictions.push({
         key: `related_papers:${this.simpleHash(context.researchPaper.title)}`,
         type: 'related_papers',
-        confidence: 0.8
+        confidence: 0.8,
       })
     }
 
@@ -506,7 +509,7 @@ export class CachingAgent extends BaseAgent {
       predictions.push({
         key: `followup:${this.simpleHash(lastMessage)}`,
         type: 'followup_questions',
-        confidence: 0.6
+        confidence: 0.6,
       })
     }
 
@@ -535,10 +538,10 @@ export class CachingAgent extends BaseAgent {
         size: this.memoryCache.size,
         memorySizeBytes: this.currentMemorySize,
         maxSizeBytes: this.config.maxMemoryCacheSize,
-        utilizationPercent: (this.currentMemorySize / this.config.maxMemoryCacheSize) * 100
+        utilizationPercent: (this.currentMemorySize / this.config.maxMemoryCacheSize) * 100,
       },
       stats: this.cacheStats,
-      config: this.config
+      config: this.config,
     }
   }
 
@@ -546,12 +549,12 @@ export class CachingAgent extends BaseAgent {
   async clearAll(): Promise<void> {
     this.memoryCache.clear()
     this.currentMemorySize = 0
-    
+
     if (typeof localStorage !== 'undefined') {
-      const keys = Object.keys(localStorage).filter(key => key.startsWith('medresearch_cache_'))
-      keys.forEach(key => localStorage.removeItem(key))
+      const keys = Object.keys(localStorage).filter((key) => key.startsWith('medresearch_cache_'))
+      keys.forEach((key) => localStorage.removeItem(key))
     }
-    
+
     this.log('info', 'All caches cleared')
   }
 }

@@ -44,7 +44,7 @@ export class ValidationAgent extends BaseAgent {
     result: ValidationResult
     source: string
   }> = []
-  
+
   private medicalTerminology: Set<string> = new Set()
   private prohibitedPhrases: Set<string> = new Set()
   private citationPatterns: RegExp[] = []
@@ -56,22 +56,22 @@ export class ValidationAgent extends BaseAgent {
         description: 'Validates medical content for accuracy and safety',
         inputTypes: ['medical_content', 'research_data'],
         outputTypes: ['validation_result', 'quality_score'],
-        dependencies: []
+        dependencies: [],
       },
       {
         name: 'citation_verification',
         description: 'Verifies and enhances citations in medical content',
         inputTypes: ['cited_content'],
         outputTypes: ['citation_status', 'enhanced_citations'],
-        dependencies: []
+        dependencies: [],
       },
       {
         name: 'safety_screening',
         description: 'Screens content for medical safety concerns',
         inputTypes: ['medical_text'],
         outputTypes: ['safety_report', 'risk_assessment'],
-        dependencies: []
-      }
+        dependencies: [],
+      },
     ])
 
     this.config = {
@@ -82,7 +82,7 @@ export class ValidationAgent extends BaseAgent {
       minConfidenceThreshold: 0.7,
       maxResponseLength: 2000,
       requireMultipleSources: true,
-      ...config
+      ...config,
     }
 
     this.initializeValidationResources()
@@ -94,38 +94,43 @@ export class ValidationAgent extends BaseAgent {
     try {
       const content = this.extractContent(context)
       const contentType = context.metadata?.type || 'medical_content'
-      
-      this.log('info', 'Validating content', { 
+
+      this.log('info', 'Validating content', {
         contentLength: content.length,
         type: contentType,
-        sessionId: context.sessionId 
+        sessionId: context.sessionId,
       })
 
       // Perform comprehensive validation
       const validationResult = await this.validateContent(content, context)
-      
+
       // Record validation for analytics
       this.recordValidation(content, validationResult, context.metadata?.source || 'unknown')
 
       // Determine if content passes validation
-      const passes = validationResult.isValid && 
-                    validationResult.confidence >= this.config.minConfidenceThreshold &&
-                    !validationResult.issues.some(issue => issue.severity === 'critical')
+      const passes =
+        validationResult.isValid &&
+        validationResult.confidence >= this.config.minConfidenceThreshold &&
+        !validationResult.issues.some((issue) => issue.severity === 'critical')
 
-      return this.createResponse(passes, validationResult, passes ? undefined : 'Content validation failed', {
-        processingTime: Date.now() - startTime,
-        confidence: validationResult.confidence,
-        qualityScore: validationResult.qualityScore,
-        issueCount: validationResult.issues.length,
-        validationPassed: passes
-      })
-
+      return this.createResponse(
+        passes,
+        validationResult,
+        passes ? undefined : 'Content validation failed',
+        {
+          processingTime: Date.now() - startTime,
+          confidence: validationResult.confidence,
+          qualityScore: validationResult.qualityScore,
+          issueCount: validationResult.issues.length,
+          validationPassed: passes,
+        },
+      )
     } catch (error) {
       this.log('error', 'Validation process failed', error)
-      
+
       return this.createResponse(false, undefined, `Validation failed: ${error.message}`, {
         processingTime: Date.now() - startTime,
-        confidence: 0
+        confidence: 0,
       })
     }
   }
@@ -141,9 +146,10 @@ export class ValidationAgent extends BaseAgent {
 
   async getHealthStatus(): Promise<{ healthy: boolean; details?: any }> {
     const recentValidations = this.validationHistory.slice(-20)
-    const passRate = recentValidations.length > 0 
-      ? recentValidations.filter(v => v.result.isValid).length / recentValidations.length 
-      : 1
+    const passRate =
+      recentValidations.length > 0
+        ? recentValidations.filter((v) => v.result.isValid).length / recentValidations.length
+        : 1
 
     return {
       healthy: passRate > 0.8,
@@ -155,9 +161,9 @@ export class ValidationAgent extends BaseAgent {
         resourcesLoaded: {
           medicalTerms: this.medicalTerminology.size,
           prohibitedPhrases: this.prohibitedPhrases.size,
-          citationPatterns: this.citationPatterns.length
-        }
-      }
+          citationPatterns: this.citationPatterns.length,
+        },
+      },
     }
   }
 
@@ -165,20 +171,41 @@ export class ValidationAgent extends BaseAgent {
   private initializeValidationResources(): void {
     // Medical terminology for validation
     const medicalTerms = [
-      'clinical trial', 'randomized controlled trial', 'systematic review', 'meta-analysis',
-      'peer-reviewed', 'placebo', 'double-blind', 'efficacy', 'safety profile',
-      'adverse effects', 'contraindications', 'dosage', 'pharmacokinetics',
-      'biomarker', 'endpoint', 'statistical significance', 'confidence interval'
+      'clinical trial',
+      'randomized controlled trial',
+      'systematic review',
+      'meta-analysis',
+      'peer-reviewed',
+      'placebo',
+      'double-blind',
+      'efficacy',
+      'safety profile',
+      'adverse effects',
+      'contraindications',
+      'dosage',
+      'pharmacokinetics',
+      'biomarker',
+      'endpoint',
+      'statistical significance',
+      'confidence interval',
     ]
-    medicalTerms.forEach(term => this.medicalTerminology.add(term.toLowerCase()))
+    medicalTerms.forEach((term) => this.medicalTerminology.add(term.toLowerCase()))
 
     // Prohibited phrases that could indicate medical advice
     const prohibitedPhrases = [
-      'you should take', 'i recommend taking', 'stop taking', 'increase your dose',
-      'you have', 'you are diagnosed with', 'treatment for you', 'prescribed for you',
-      'medical advice for you', 'your condition requires', 'your symptoms indicate'
+      'you should take',
+      'i recommend taking',
+      'stop taking',
+      'increase your dose',
+      'you have',
+      'you are diagnosed with',
+      'treatment for you',
+      'prescribed for you',
+      'medical advice for you',
+      'your condition requires',
+      'your symptoms indicate',
     ]
-    prohibitedPhrases.forEach(phrase => this.prohibitedPhrases.add(phrase.toLowerCase()))
+    prohibitedPhrases.forEach((phrase) => this.prohibitedPhrases.add(phrase.toLowerCase()))
 
     // Citation patterns
     this.citationPatterns = [
@@ -188,13 +215,13 @@ export class ValidationAgent extends BaseAgent {
       /pmid:\s*\d+/gi, // PubMed IDs
       /https?:\/\/[^\s]+/gi, // URLs
       /according to [^.,]+/gi, // "according to study..."
-      /studies? (?:show|suggest|indicate|demonstrate|found)/gi
+      /studies? (?:show|suggest|indicate|demonstrate|found)/gi,
     ]
 
     this.log('info', 'Validation resources initialized', {
       medicalTerms: this.medicalTerminology.size,
       prohibitedPhrases: this.prohibitedPhrases.size,
-      citationPatterns: this.citationPatterns.length
+      citationPatterns: this.citationPatterns.length,
     })
   }
 
@@ -268,7 +295,7 @@ export class ValidationAgent extends BaseAgent {
     }
 
     // Calculate overall validity
-    const criticalIssues = issues.filter(issue => issue.severity === 'critical')
+    const criticalIssues = issues.filter((issue) => issue.severity === 'critical')
     const isValid = criticalIssues.length === 0 && qualityScore > 0.5
 
     // Generate recommendations
@@ -279,24 +306,24 @@ export class ValidationAgent extends BaseAgent {
       confidence: Math.max(0.1, Math.min(1.0, confidence)),
       issues,
       recommendations,
-      qualityScore: Math.max(0.1, Math.min(1.0, qualityScore))
+      qualityScore: Math.max(0.1, Math.min(1.0, qualityScore)),
     }
   }
 
   // Citation validation
-  private validateCitations(content: string): { issues: ValidationIssue[], qualityFactor: number } {
+  private validateCitations(content: string): { issues: ValidationIssue[]; qualityFactor: number } {
     const issues: ValidationIssue[] = []
     let qualityFactor = 1.0
 
     // Check for citation presence
-    const hasCitations = this.citationPatterns.some(pattern => pattern.test(content))
-    
+    const hasCitations = this.citationPatterns.some((pattern) => pattern.test(content))
+
     if (!hasCitations && content.length > 200) {
       issues.push({
         type: 'citation',
         severity: 'medium',
         message: 'No citations found in substantial medical content',
-        recommendation: 'Add references to peer-reviewed sources to support medical claims'
+        recommendation: 'Add references to peer-reviewed sources to support medical claims',
       })
       qualityFactor *= 0.8
     }
@@ -310,7 +337,7 @@ export class ValidationAgent extends BaseAgent {
           severity: 'high',
           message: `Medical claim lacks supporting citation: "${claim.substring(0, 50)}..."`,
           recommendation: 'Provide peer-reviewed source for this medical claim',
-          location: claim
+          location: claim,
         })
         qualityFactor *= 0.7
       }
@@ -320,7 +347,10 @@ export class ValidationAgent extends BaseAgent {
   }
 
   // Medical safety screening
-  private performSafetyScreening(content: string): { issues: ValidationIssue[], qualityFactor: number } {
+  private performSafetyScreening(content: string): {
+    issues: ValidationIssue[]
+    qualityFactor: number
+  } {
     const issues: ValidationIssue[] = []
     let qualityFactor = 1.0
 
@@ -333,8 +363,9 @@ export class ValidationAgent extends BaseAgent {
           type: 'safety',
           severity: 'critical',
           message: `Content contains potential medical advice: "${phrase}"`,
-          recommendation: 'Remove direct medical advice and add disclaimer to consult healthcare professionals',
-          location: phrase
+          recommendation:
+            'Remove direct medical advice and add disclaimer to consult healthcare professionals',
+          location: phrase,
         })
         qualityFactor *= 0.3
       }
@@ -344,7 +375,7 @@ export class ValidationAgent extends BaseAgent {
     const diagnosticPatterns = [
       /you (?:have|are diagnosed with|suffer from)/gi,
       /your (?:condition|disease|illness) is/gi,
-      /you need (?:to take|treatment|surgery)/gi
+      /you need (?:to take|treatment|surgery)/gi,
     ]
 
     for (const pattern of diagnosticPatterns) {
@@ -354,7 +385,7 @@ export class ValidationAgent extends BaseAgent {
           type: 'safety',
           severity: 'critical',
           message: 'Content contains diagnostic or prescriptive language',
-          recommendation: 'Reframe as general information and add medical disclaimer'
+          recommendation: 'Reframe as general information and add medical disclaimer',
         })
         qualityFactor *= 0.4
       }
@@ -364,13 +395,15 @@ export class ValidationAgent extends BaseAgent {
     const dosagePattern = /\d+\s*(?:mg|ml|cc|units?|tablets?|capsules?)/gi
     const dosageMatches = content.match(dosagePattern)
     if (dosageMatches && dosageMatches.length > 0) {
-      const hasProperContext = /(?:study|trial|research|literature) (?:used|administered|reported)/gi.test(content)
+      const hasProperContext =
+        /(?:study|trial|research|literature) (?:used|administered|reported)/gi.test(content)
       if (!hasProperContext) {
         issues.push({
           type: 'safety',
           severity: 'high',
           message: 'Content contains dosage information without research context',
-          recommendation: 'Ensure dosage information is presented as research data, not medical advice'
+          recommendation:
+            'Ensure dosage information is presented as research data, not medical advice',
         })
         qualityFactor *= 0.6
       }
@@ -380,10 +413,13 @@ export class ValidationAgent extends BaseAgent {
   }
 
   // Fact verification
-  private async verifyFacts(content: string, context: AgentContext): Promise<{ 
-    issues: ValidationIssue[], 
-    qualityFactor: number, 
-    confidence: number 
+  private async verifyFacts(
+    content: string,
+    context: AgentContext,
+  ): Promise<{
+    issues: ValidationIssue[]
+    qualityFactor: number
+    confidence: number
   }> {
     const issues: ValidationIssue[] = []
     let qualityFactor = 1.0
@@ -396,7 +432,7 @@ export class ValidationAgent extends BaseAgent {
         type: 'fact',
         severity: 'high',
         message: `Potential contradiction detected: ${contradiction}`,
-        recommendation: 'Review and resolve contradictory statements'
+        recommendation: 'Review and resolve contradictory statements',
       })
       qualityFactor *= 0.7
       confidence *= 0.8
@@ -405,7 +441,7 @@ export class ValidationAgent extends BaseAgent {
     // Check for outdated information indicators
     const outdatedIndicators = [
       /(?:old|previous|former|past) (?:research|studies?|trials?)/gi,
-      /\b(?:19|20)\d{2}\b/g // Years that might be too old
+      /\b(?:19|20)\d{2}\b/g, // Years that might be too old
     ]
 
     for (const pattern of outdatedIndicators) {
@@ -415,13 +451,13 @@ export class ValidationAgent extends BaseAgent {
         const years = content.match(/\b(19|20)\d{2}\b/g)
         if (years) {
           const currentYear = new Date().getFullYear()
-          const oldYears = years.filter(year => currentYear - parseInt(year) > 10)
+          const oldYears = years.filter((year) => currentYear - parseInt(year) > 10)
           if (oldYears.length > 0) {
             issues.push({
               type: 'fact',
               severity: 'medium',
               message: `Content references potentially outdated research: ${oldYears.join(', ')}`,
-              recommendation: 'Verify if more recent research is available'
+              recommendation: 'Verify if more recent research is available',
             })
             qualityFactor *= 0.9
           }
@@ -431,7 +467,7 @@ export class ValidationAgent extends BaseAgent {
 
     // Check for unsupported superlatives
     const superlatives = [
-      /\b(?:best|worst|most effective|least effective|always|never|all|none)\b/gi
+      /\b(?:best|worst|most effective|least effective|always|never|all|none)\b/gi,
     ]
 
     for (const pattern of superlatives) {
@@ -441,7 +477,8 @@ export class ValidationAgent extends BaseAgent {
           type: 'fact',
           severity: 'medium',
           message: 'Content contains multiple unsupported absolute statements',
-          recommendation: 'Use more qualified language like "studies suggest" or "evidence indicates"'
+          recommendation:
+            'Use more qualified language like "studies suggest" or "evidence indicates"',
         })
         qualityFactor *= 0.85
       }
@@ -451,7 +488,10 @@ export class ValidationAgent extends BaseAgent {
   }
 
   // Peer review quality check
-  private checkPeerReviewQuality(content: string): { issues: ValidationIssue[], qualityFactor: number } {
+  private checkPeerReviewQuality(content: string): {
+    issues: ValidationIssue[]
+    qualityFactor: number
+  } {
     const issues: ValidationIssue[] = []
     let qualityFactor = 1.0
 
@@ -461,17 +501,17 @@ export class ValidationAgent extends BaseAgent {
       /published in/gi,
       /journal of/gi,
       /clinical trial/gi,
-      /randomized controlled trial/gi
+      /randomized controlled trial/gi,
     ]
 
-    const hasPeerReviewIndicators = peerReviewIndicators.some(pattern => pattern.test(content))
-    
+    const hasPeerReviewIndicators = peerReviewIndicators.some((pattern) => pattern.test(content))
+
     if (content.length > 300 && !hasPeerReviewIndicators) {
       issues.push({
         type: 'review',
         severity: 'medium',
         message: 'Content lacks references to peer-reviewed sources',
-        recommendation: 'Include references to peer-reviewed medical literature'
+        recommendation: 'Include references to peer-reviewed medical literature',
       })
       qualityFactor *= 0.8
     }
@@ -482,7 +522,7 @@ export class ValidationAgent extends BaseAgent {
       /social media/gi,
       /unverified/gi,
       /rumor/gi,
-      /anecdotal/gi
+      /anecdotal/gi,
     ]
 
     for (const pattern of lowQualityIndicators) {
@@ -491,7 +531,7 @@ export class ValidationAgent extends BaseAgent {
           type: 'review',
           severity: 'high',
           message: 'Content may reference low-quality or unverified sources',
-          recommendation: 'Replace with peer-reviewed medical literature references'
+          recommendation: 'Replace with peer-reviewed medical literature references',
         })
         qualityFactor *= 0.6
       }
@@ -501,7 +541,7 @@ export class ValidationAgent extends BaseAgent {
   }
 
   // Structure validation
-  private validateStructure(content: string): { issues: ValidationIssue[], qualityFactor: number } {
+  private validateStructure(content: string): { issues: ValidationIssue[]; qualityFactor: number } {
     const issues: ValidationIssue[] = []
     let qualityFactor = 1.0
 
@@ -511,20 +551,23 @@ export class ValidationAgent extends BaseAgent {
         type: 'confidence',
         severity: 'medium',
         message: `Content exceeds recommended length (${content.length}/${this.config.maxResponseLength} characters)`,
-        recommendation: 'Consider condensing the response while maintaining key information'
+        recommendation: 'Consider condensing the response while maintaining key information',
       })
       qualityFactor *= 0.9
     }
 
     // Check for proper medical disclaimers
-    const hasDisclaimer = /(?:consult|speak with|contact) (?:your )?(?:doctor|physician|healthcare provider|medical professional)/gi.test(content)
-    
+    const hasDisclaimer =
+      /(?:consult|speak with|contact) (?:your )?(?:doctor|physician|healthcare provider|medical professional)/gi.test(
+        content,
+      )
+
     if (content.length > 200 && this.containsMedicalInformation(content) && !hasDisclaimer) {
       issues.push({
         type: 'safety',
         severity: 'medium',
         message: 'Medical content lacks appropriate disclaimer',
-        recommendation: 'Add disclaimer to consult healthcare professionals'
+        recommendation: 'Add disclaimer to consult healthcare professionals',
       })
       qualityFactor *= 0.8
     }
@@ -533,22 +576,25 @@ export class ValidationAgent extends BaseAgent {
   }
 
   // Multiple source validation
-  private validateMultipleSources(content: string, context: AgentContext): { 
-    issues: ValidationIssue[], 
-    qualityFactor: number 
+  private validateMultipleSources(
+    content: string,
+    context: AgentContext,
+  ): {
+    issues: ValidationIssue[]
+    qualityFactor: number
   } {
     const issues: ValidationIssue[] = []
     let qualityFactor = 1.0
 
     // Count distinct citations/sources
     const citations = this.extractCitations(content)
-    
+
     if (content.length > 400 && citations.length < 2) {
       issues.push({
         type: 'source',
         severity: 'medium',
         message: 'Substantial medical content should cite multiple sources',
-        recommendation: 'Include additional peer-reviewed sources to support claims'
+        recommendation: 'Include additional peer-reviewed sources to support claims',
       })
       qualityFactor *= 0.8
     }
@@ -563,9 +609,9 @@ export class ValidationAgent extends BaseAgent {
 
     for (const sentence of sentences) {
       const lowerSentence = sentence.toLowerCase()
-      
+
       // Check if sentence contains medical terminology
-      if (Array.from(this.medicalTerminology).some(term => lowerSentence.includes(term))) {
+      if (Array.from(this.medicalTerminology).some((term) => lowerSentence.includes(term))) {
         claims.push(sentence.trim())
       }
 
@@ -587,12 +633,12 @@ export class ValidationAgent extends BaseAgent {
     const contextEnd = Math.min(content.length, claimIndex + claim.length + 150)
     const context = content.substring(contextStart, contextEnd)
 
-    return this.citationPatterns.some(pattern => pattern.test(context))
+    return this.citationPatterns.some((pattern) => pattern.test(context))
   }
 
   private findContradictions(content: string): string[] {
     const contradictions: string[] = []
-    
+
     // Simple contradiction detection
     const sentences = content.split(/[.!?]+/)
     const positiveKeywords = ['effective', 'safe', 'beneficial', 'improved', 'successful']
@@ -600,18 +646,20 @@ export class ValidationAgent extends BaseAgent {
 
     for (let i = 0; i < sentences.length; i++) {
       const sentence = sentences[i].toLowerCase()
-      
+
       for (let j = i + 1; j < sentences.length; j++) {
         const otherSentence = sentences[j].toLowerCase()
-        
+
         // Check for positive vs negative statements about the same topic
-        if (positiveKeywords.some(keyword => sentence.includes(keyword)) &&
-            negativeKeywords.some(keyword => otherSentence.includes(keyword))) {
+        if (
+          positiveKeywords.some((keyword) => sentence.includes(keyword)) &&
+          negativeKeywords.some((keyword) => otherSentence.includes(keyword))
+        ) {
           // Basic check if they're about the same topic (share common words)
-          const words1 = sentence.split(/\s+/).filter(w => w.length > 3)
-          const words2 = otherSentence.split(/\s+/).filter(w => w.length > 3)
-          const commonWords = words1.filter(w => words2.includes(w))
-          
+          const words1 = sentence.split(/\s+/).filter((w) => w.length > 3)
+          const words2 = otherSentence.split(/\s+/).filter((w) => w.length > 3)
+          const commonWords = words1.filter((w) => words2.includes(w))
+
           if (commonWords.length > 1) {
             contradictions.push(`"${sentences[i].trim()}" vs "${sentences[j].trim()}"`)
           }
@@ -624,7 +672,7 @@ export class ValidationAgent extends BaseAgent {
 
   private extractCitations(content: string): string[] {
     const citations: string[] = []
-    
+
     for (const pattern of this.citationPatterns) {
       const matches = content.match(pattern)
       if (matches) {
@@ -638,18 +686,28 @@ export class ValidationAgent extends BaseAgent {
   private containsMedicalInformation(content: string): boolean {
     const lowerContent = content.toLowerCase()
     const medicalIndicators = [
-      'treatment', 'therapy', 'medication', 'drug', 'clinical', 'medical',
-      'patient', 'symptoms', 'diagnosis', 'disease', 'condition', 'study'
+      'treatment',
+      'therapy',
+      'medication',
+      'drug',
+      'clinical',
+      'medical',
+      'patient',
+      'symptoms',
+      'diagnosis',
+      'disease',
+      'condition',
+      'study',
     ]
 
-    return medicalIndicators.some(indicator => lowerContent.includes(indicator))
+    return medicalIndicators.some((indicator) => lowerContent.includes(indicator))
   }
 
   private generateRecommendations(issues: ValidationIssue[], content: string): string[] {
     const recommendations: string[] = []
 
     // General recommendations based on issue patterns
-    const issueTypes = new Set(issues.map(issue => issue.type))
+    const issueTypes = new Set(issues.map((issue) => issue.type))
 
     if (issueTypes.has('citation')) {
       recommendations.push('Add more peer-reviewed citations to support medical claims')
@@ -663,13 +721,13 @@ export class ValidationAgent extends BaseAgent {
       recommendations.push('Verify facts against recent medical literature')
     }
 
-    if (issues.some(issue => issue.severity === 'critical')) {
+    if (issues.some((issue) => issue.severity === 'critical')) {
       recommendations.push('Address critical issues before publication')
     }
 
     // Add specific recommendations from issues
     const specificRecs = issues
-      .map(issue => issue.recommendation)
+      .map((issue) => issue.recommendation)
       .filter((rec, index, arr) => arr.indexOf(rec) === index) // Remove duplicates
 
     recommendations.push(...specificRecs)
@@ -690,7 +748,7 @@ export class ValidationAgent extends BaseAgent {
       timestamp: new Date(),
       contentHash: this.simpleHash(content),
       result,
-      source
+      source,
     })
 
     // Keep only last 100 validations
@@ -703,7 +761,7 @@ export class ValidationAgent extends BaseAgent {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(36)
@@ -716,16 +774,16 @@ export class ValidationAgent extends BaseAgent {
       passRate: 0,
       averageQuality: this.calculateAverageQuality(),
       commonIssues: {} as Record<string, number>,
-      severityDistribution: { low: 0, medium: 0, high: 0, critical: 0 }
+      severityDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
     }
 
     if (this.validationHistory.length > 0) {
-      const passed = this.validationHistory.filter(v => v.result.isValid).length
+      const passed = this.validationHistory.filter((v) => v.result.isValid).length
       stats.passRate = passed / this.validationHistory.length
 
       // Count common issues
-      this.validationHistory.forEach(validation => {
-        validation.result.issues.forEach(issue => {
+      this.validationHistory.forEach((validation) => {
+        validation.result.issues.forEach((issue) => {
           stats.commonIssues[issue.type] = (stats.commonIssues[issue.type] || 0) + 1
           stats.severityDistribution[issue.severity]++
         })

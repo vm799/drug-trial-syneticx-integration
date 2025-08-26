@@ -28,7 +28,7 @@ class PWAManager {
       enableOfflineMode: true,
       updateCheckInterval: 60000, // 1 minute
       cacheStrategy: 'networkFirst',
-      ...config
+      ...config,
     }
 
     this.initialize()
@@ -37,13 +37,13 @@ class PWAManager {
   private initialize(): void {
     // Initialize service worker
     this.initializeServiceWorker()
-    
+
     // Setup online/offline detection
     this.setupNetworkDetection()
-    
+
     // Setup install prompt handling
     this.setupInstallPrompt()
-    
+
     // Setup notification permission
     if (this.config.enableNotifications) {
       this.requestNotificationPermission()
@@ -60,7 +60,7 @@ class PWAManager {
       this.workbox.addEventListener('waiting', (event) => {
         this.isUpdateAvailable = true
         this.emit('updateAvailable', event)
-        
+
         // Show update notification
         this.showUpdateNotification()
       })
@@ -68,7 +68,7 @@ class PWAManager {
       // Service worker controlling the page
       this.workbox.addEventListener('controlling', (event) => {
         this.emit('updateActivated', event)
-        
+
         // Reload page to get latest assets
         window.location.reload()
       })
@@ -91,13 +91,13 @@ class PWAManager {
       this.isOnline = true
       this.emit('online')
       console.log('🌐 Connection restored')
-      
+
       if (this.config.enableNotifications) {
         this.showNotification('Connection restored', {
-          body: 'You\'re back online! Syncing data...',
+          body: "You're back online! Syncing data...",
           icon: '/icons/icon-192x192.png',
           badge: '/icons/badge-72x72.png',
-          tag: 'connection-status'
+          tag: 'connection-status',
         })
       }
     })
@@ -106,13 +106,13 @@ class PWAManager {
       this.isOnline = false
       this.emit('offline')
       console.log('📱 Working offline')
-      
+
       if (this.config.enableNotifications) {
         this.showNotification('Working offline', {
           body: 'No internet connection. Using cached data.',
           icon: '/icons/icon-192x192.png',
           badge: '/icons/badge-72x72.png',
-          tag: 'connection-status'
+          tag: 'connection-status',
         })
       }
     })
@@ -122,11 +122,11 @@ class PWAManager {
     window.addEventListener('beforeinstallprompt', (event) => {
       // Prevent the default install prompt
       event.preventDefault()
-      
+
       // Store the event for later use
       this.installPrompt = event as any
       this.emit('installPromptAvailable')
-      
+
       console.log('📲 App install prompt available')
     })
 
@@ -164,7 +164,7 @@ class PWAManager {
     try {
       await this.installPrompt.prompt()
       const result = await this.installPrompt.userChoice
-      
+
       if (result.outcome === 'accepted') {
         console.log('✅ User accepted app installation')
         return true
@@ -227,7 +227,7 @@ class PWAManager {
       await registration.showNotification(title, {
         ...options,
         icon: options.icon || '/icons/icon-192x192.png',
-        badge: options.badge || '/icons/badge-72x72.png'
+        badge: options.badge || '/icons/badge-72x72.png',
       })
     } catch (error) {
       console.error('❌ Notification failed:', error)
@@ -245,14 +245,14 @@ class PWAManager {
         {
           action: 'update',
           title: 'Update Now',
-          icon: '/icons/update-icon.png'
+          icon: '/icons/update-icon.png',
         },
         {
           action: 'later',
           title: 'Later',
-          icon: '/icons/later-icon.png'
-        }
-      ]
+          icon: '/icons/later-icon.png',
+        },
+      ],
     })
   }
 
@@ -283,7 +283,7 @@ class PWAManager {
         console.log(`🗑️ Cache cleared: ${cacheName}`)
       } else {
         const cacheNames = await caches.keys()
-        await Promise.all(cacheNames.map(name => caches.delete(name)))
+        await Promise.all(cacheNames.map((name) => caches.delete(name)))
         console.log('🗑️ All caches cleared')
       }
     } catch (error) {
@@ -301,7 +301,7 @@ class PWAManager {
       for (const name of cacheNames) {
         const cache = await caches.open(name)
         const keys = await cache.keys()
-        
+
         for (const request of keys) {
           const response = await cache.match(request)
           if (response) {
@@ -329,9 +329,11 @@ class PWAManager {
 
   // App status
   isInstalled(): boolean {
-    return window.matchMedia('(display-mode: standalone)').matches ||
-           window.matchMedia('(display-mode: fullscreen)').matches ||
-           (window.navigator as any).standalone === true
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      (window.navigator as any).standalone === true
+    )
   }
 
   hasUpdateAvailable(): boolean {
@@ -359,7 +361,7 @@ class PWAManager {
   private emit(event: string, data?: any): void {
     const listeners = this.eventListeners.get(event)
     if (listeners) {
-      listeners.forEach(callback => callback(data))
+      listeners.forEach((callback) => callback(data))
     }
   }
 
@@ -383,7 +385,8 @@ class PWAManager {
       notificationsEnabled: Notification.permission === 'granted',
       serviceWorkerSupported: 'serviceWorker' in navigator,
       cacheSupported: 'caches' in window,
-      backgroundSyncSupported: 'serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype
+      backgroundSyncSupported:
+        'serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype,
     }
   }
 }
