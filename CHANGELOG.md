@@ -602,3 +602,18 @@ tests/                       # Test suites (structure defined)
 **Total Development Time**: Approximately 2-3 weeks of development work compressed into a single comprehensive implementation.
 
 **Technology Impact**: Modern full-stack architecture with AI integration, suitable for healthcare and research organizations requiring reliable, validated medical information systems.
+
+
+---
+
+## 7. `CHANGELOG.md` (update)
+```markdown
+## [1.2.0] - 2025-08-26
+### Added
+- Multi-agent orchestration layer:
+  - `Coordinator.js`
+  - `ResearchAgent.js`
+  - `TrialMatchingAgent.js`
+  - `ExplainerAgent.js`
+- New `/api/chat` route for orchestrated workflows
+- README updated with Executive Summary, Multi-Agent Workflow, and architecture diagram
