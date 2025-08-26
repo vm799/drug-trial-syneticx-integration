@@ -4,15 +4,33 @@ import ResearchPaper from '../models/ResearchPaper.js'
 
 class OpenAIService {
   constructor() {
-    this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })  
+    this.isEnabled = !!process.env.OPENAI_API_KEY
+
+    if (this.isEnabled) {
+      try {
+        this.client = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+        })
+        logger.info('OpenAI service initialized successfully')
+      } catch (error) {
+        logger.error('Failed to initialize OpenAI service:', error)
+        this.isEnabled = false
+      }
+    } else {
+      logger.warn('OpenAI API key not provided - running in mock mode')
+    }
 
     // Validation thresholds
     this.thresholds = {
       minConfidence: 0.7,
       maxHallucinationRisk: 0.3,
       requireCitation: true,
+    }
+
+    // Initialize model configuration
+    this.models = {
+      chat: 'gpt-4',
+      embedding: 'text-embedding-ada-002'
     }
   }
 
