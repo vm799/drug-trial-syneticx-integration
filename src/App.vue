@@ -133,26 +133,11 @@
               </div>
             </div>
 
-            <!-- AI Findings Display -->
-            <div v-if="lastResponse" class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
-              <div class="flex items-start space-x-3">
-                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  🤖
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center space-x-2 mb-2">
-                    <h4 class="text-sm font-semibold text-green-900">AI Research Analysis</h4>
-                    <span class="px-2 py-1 bg-green-200 text-green-800 text-xs rounded-full">✓ Verified</span>
-                  </div>
-                  <div class="prose prose-sm max-w-none">
-                    <p class="text-sm font-medium text-green-900 leading-relaxed whitespace-pre-wrap">{{ lastResponse }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- AI Research Results Display -->
+            <ResearchResults :results="aiResults" />
 
             <!-- Empty State -->
-            <div v-if="!lastResponse && !isLoading" class="text-center py-6">
+            <div v-if="!aiResults && !isLoading" class="text-center py-6">
               <div class="w-12 h-12 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-3">
                 💬
               </div>
@@ -220,10 +205,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import ResearchResults from './components/ResearchResults.vue'
 
 // Reactive state
 const chatMessage = ref('')
 const lastResponse = ref('')
+const aiResults = ref(null)
 const isLoading = ref(false)
 const systemStatus = ref('Initializing')
 const researchCount = ref(0)
@@ -268,31 +255,37 @@ const sendMessage = async () => {
     if (response.ok) {
       const data = await response.json()
       
-      // The API returns researchInsights, trialMatches, and explanation directly
-      let fullResponse = ''
+      // Set structured results for ResearchResults component
+      aiResults.value = {
+        researchInsights: data.researchInsights || null,
+        trialMatches: data.trialMatches || null,
+        explanation: data.explanation || null
+      }
       
+      // Update counters
+      if (data.researchInsights) researchCount.value++
+      if (data.trialMatches) trialsCount.value++
+      if (data.explanation) chatCount.value++
+      
+      // Keep legacy response for any fallbacks
+      let fullResponse = ''
       if (data.researchInsights) {
         fullResponse += `📊 **Research Insights:**\n${data.researchInsights}\n\n`
-        researchCount.value++
       }
-      
       if (data.trialMatches) {
         fullResponse += `🧪 **Clinical Trial Matches:**\n${data.trialMatches}\n\n`
-        trialsCount.value++
       }
-      
       if (data.explanation) {
         fullResponse += `💡 **Summary:**\n${data.explanation}`
       }
-      
       lastResponse.value = fullResponse || data.message || 'AI response received successfully!'
-      chatCount.value++
     } else {
       const errorData = await response.json()
       lastResponse.value = `Error: ${errorData.message || 'Failed to get AI response'}`
     }
   } catch (error) {
     console.error('Chat error:', error)
+    aiResults.value = null
     lastResponse.value = 'Sorry, there was an error connecting to the AI service. Please check that the backend is running and try again.'
   } finally {
     isLoading.value = false

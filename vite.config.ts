@@ -6,15 +6,6 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
-  build: {
-    rollupOptions: {
-      onwarn(warning, warn) {
-        // Suppress TypeScript warnings during build
-        if (warning.code === 'TYPESCRIPT_ERROR') return
-        warn(warning)
-      }
-    }
-  },
   plugins: [
     vue({
       template: {
@@ -192,7 +183,7 @@ export default defineConfig({
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
   server: {
-    port: 5173,
+    port: 3000,
     host: true,
   },
   build: {
@@ -205,6 +196,11 @@ export default defineConfig({
       },
     },
     rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress TypeScript warnings during build
+        if (warning.code === 'TYPESCRIPT_ERROR') return
+        warn(warning)
+      },
       output: {
         manualChunks: {
           'vue-vendor': ['vue', 'vue-router'],

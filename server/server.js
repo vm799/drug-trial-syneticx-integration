@@ -22,6 +22,7 @@ import authMiddleware from './middleware/auth.js'
 // Import routes
 import authRoutes from './routes/auth.js'
 import chatRoutes from './routes/chat.js'
+import enhancedChatRoutes from './routes/enhanced-chat.js'
 import researchRoutes from './routes/research.js'
 import analyticsRoutes from './routes/analytics.js'
 import userRoutes from './routes/user.js'
@@ -30,7 +31,7 @@ const app = express()
 const server = createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
   },
 })
@@ -76,7 +77,7 @@ app.use('/api/chat', chatLimiter)
 app.use(compression())
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: 'http://localhost:3000',
     credentials: true,
   }),
 )
@@ -101,7 +102,8 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes)
-app.use('/api/chat', chatRoutes) // Temporarily removed auth for testing
+app.use('/api/chat', chatRoutes) // Basic chat - temporarily removed auth for testing
+app.use('/api/chat', enhancedChatRoutes) // Enhanced multi-agent chat with LangChain + CrewAI
 app.use('/api/research', authMiddleware, researchRoutes)
 app.use('/api/analytics', authMiddleware, analyticsRoutes)
 app.use('/api/user', authMiddleware, userRoutes)
