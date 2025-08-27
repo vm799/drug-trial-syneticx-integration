@@ -267,17 +267,26 @@ const sendMessage = async () => {
 
     if (response.ok) {
       const data = await response.json()
-      lastResponse.value = data.results?.response || data.message || 'AI response received successfully!'
-      // Increment chat counter
-      chatCount.value++
-      // Could also increment research counter if response contains research
-      if (data.results?.researchInsights) {
+      
+      // The API returns researchInsights, trialMatches, and explanation directly
+      let fullResponse = ''
+      
+      if (data.researchInsights) {
+        fullResponse += `📊 **Research Insights:**\n${data.researchInsights}\n\n`
         researchCount.value++
       }
-      // Could increment trials counter if response contains trial matches
-      if (data.results?.trialMatches) {
+      
+      if (data.trialMatches) {
+        fullResponse += `🧪 **Clinical Trial Matches:**\n${data.trialMatches}\n\n`
         trialsCount.value++
       }
+      
+      if (data.explanation) {
+        fullResponse += `💡 **Summary:**\n${data.explanation}`
+      }
+      
+      lastResponse.value = fullResponse || data.message || 'AI response received successfully!'
+      chatCount.value++
     } else {
       const errorData = await response.json()
       lastResponse.value = `Error: ${errorData.message || 'Failed to get AI response'}`

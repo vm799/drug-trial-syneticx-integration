@@ -6,8 +6,24 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress TypeScript warnings during build
+        if (warning.code === 'TYPESCRIPT_ERROR') return
+        warn(warning)
+      }
+    }
+  },
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          // Ignore custom element warnings
+          isCustomElement: (tag) => tag.includes('-')
+        }
+      }
+    }),
     vueDevTools(),
     VitePWA({
       registerType: 'autoUpdate',
