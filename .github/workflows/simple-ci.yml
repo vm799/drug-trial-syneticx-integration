@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
 
 jobs:
   # ============================================================================
@@ -46,6 +46,8 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+        env:
+          CI: true
 
       - name: Check frontend build artifacts
         run: |
@@ -87,6 +89,8 @@ jobs:
 
       - name: Build for production
         run: npm run build
+        env:
+          CI: true
 
       - name: Check production environment files
         run: |

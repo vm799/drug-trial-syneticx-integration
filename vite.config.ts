@@ -19,50 +19,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.openai\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'openai-api-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
-              },
-              // Note: cacheKeyWillBeUsed removed due to TypeScript compatibility
-            },
-          },
-          {
-            urlPattern: /^https:\/\/eutils\.ncbi\.nlm\.nih\.gov\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'pubmed-api-cache',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 12, // 12 hours
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'google-fonts-stylesheets',
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-webfonts',
-              expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-            },
-          },
-        ],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        skipWaiting: true,
+        clientsClaim: true,
       },
       manifest: {
         name: 'MedResearch AI - Clinical Trial & Drug Research Assistant',
@@ -165,10 +124,6 @@ export default defineConfig({
             icons: [{ src: '/icons/shortcut-bookmarks.png', sizes: '96x96' }],
           },
         ],
-      },
-      devOptions: {
-        enabled: true,
-        type: 'module',
       },
     }),
   ],
