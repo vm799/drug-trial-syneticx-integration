@@ -5,6 +5,8 @@ dotenv.config()
 // Environment variables loaded successfully
 
 import express from 'express'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
@@ -32,8 +34,10 @@ const app = express()
 const server = createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    // Reflect request origin (safest for single-origin deployments)
+    origin: true,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 })
 
@@ -78,7 +82,8 @@ app.use('/api/chat', chatLimiter)
 app.use(compression())
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    // Reflect request origin so same-origin deployments work without hardcoding
+    origin: true,
     credentials: true,
   }),
 )
@@ -109,6 +114,19 @@ app.use('/api/research', authMiddleware, researchRoutes)
 app.use('/api/analytics', authMiddleware, analyticsRoutes)
 app.use('/api/user', authMiddleware, userRoutes)
 app.use('/api/subscriptions', subscriptionRoutes) // Email subscription routes
+
+// Serve frontend (single-URL deployment)
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const frontendDistPath = path.resolve(__dirname, '../dist')
+
+// Static assets
+app.use(express.static(frontendDistPath))
+
+// SPA fallback for non-API routes
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(frontendDistPath, 'index.html'))
+})
 
 // Socket.io for real-time chat
 io.use((socket, next) => {
