@@ -21,7 +21,6 @@
     "start:production": "npm run build && concurrently \"npm run preview\" \"npm run server:start\"",
     "start": "npm run server:start",
     "heroku-postbuild": "npm run build"
-    "start": "node server.js"
   },
   "dependencies": {
     "@langchain/core": "^0.3.72",
