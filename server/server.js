@@ -26,6 +26,7 @@ import enhancedChatRoutes from './routes/enhanced-chat.js'
 import researchRoutes from './routes/research.js'
 import analyticsRoutes from './routes/analytics.js'
 import userRoutes from './routes/user.js'
+import subscriptionRoutes from './routes/subscriptions.js'
 
 const app = express()
 const server = createServer(app)
@@ -107,6 +108,7 @@ app.use('/api/chat', enhancedChatRoutes) // Enhanced multi-agent chat with LangC
 app.use('/api/research', authMiddleware, researchRoutes)
 app.use('/api/analytics', authMiddleware, analyticsRoutes)
 app.use('/api/user', authMiddleware, userRoutes)
+app.use('/api/subscriptions', subscriptionRoutes) // Email subscription routes
 
 // Socket.io for real-time chat
 io.use((socket, next) => {
