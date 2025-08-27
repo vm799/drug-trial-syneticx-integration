@@ -113,7 +113,7 @@
                 v-model="chatMessage" 
                 @keyup.enter="sendMessage"
                 type="text" 
-                placeholder="e.g., 'Latest advances in CAR-T cell therapy for leukemia'"
+                placeholder="Please type in drug or medication you would like to run a detailed search on (e.g., 'CAR-T cell therapy', 'CRISPR gene editing', 'Immunotherapy')"
                 class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium placeholder-gray-500 bg-white"
               >
               <button 
@@ -233,11 +233,15 @@ const sendMessage = async () => {
   
   isLoading.value = true
   const message = chatMessage.value
-  chatMessage.value = ''
+  // Keep the message in the input box - don't clear it
   
   try {
-    // Call the actual backend API
-    const response = await fetch('http://localhost:3001/api/chat', {
+    // Call the actual backend API (use current host for mobile compatibility)
+    const currentHost = window.location.hostname
+    const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
+      'http://localhost:3001' : 
+      `http://${currentHost}:3001`
+    const response = await fetch(`${backendUrl}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -294,7 +298,11 @@ const sendMessage = async () => {
 
 const checkSystemStatus = async () => {
   try {
-    const response = await fetch('http://localhost:3001/health')
+    const currentHost = window.location.hostname
+    const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
+      'http://localhost:3001' : 
+      `http://${currentHost}:3001`
+    const response = await fetch(`${backendUrl}/health`)
     if (response.ok) {
       const healthData = await response.json()
       systemStatus.value = 'All Systems Operational'

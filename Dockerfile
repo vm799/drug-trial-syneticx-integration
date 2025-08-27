@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for production deployment
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Set timezone and install basic dependencies
 RUN apk add --no-cache \

@@ -42,6 +42,7 @@ const io = new Server(server, {
 })
 
 const PORT = process.env.PORT || 3001
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0' // Allow network access
 
 // Connect to MongoDB
 connectDB()
@@ -193,9 +194,10 @@ process.on('SIGINT', () => {
   })
 })
 
-server.listen(PORT, () => {
-  logger.info(`🚀 Server running on port ${PORT}`)
+server.listen(PORT, HOST, () => {
+  logger.info(`🚀 Server running on ${HOST}:${PORT}`)
   logger.info(`📱 Health check: http://localhost:${PORT}/health`)
+  logger.info(`📱 Network access: http://192.168.0.96:${PORT}/health`)
 })
 
 

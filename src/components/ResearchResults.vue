@@ -83,7 +83,9 @@
               <a 
                 :href="study.doiUrl" 
                 target="_blank" 
-                class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs hover:bg-green-200 transition-colors font-medium"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs hover:bg-green-200 active:bg-green-300 transition-colors font-medium touch-manipulation"
+                @click="trackPaperClick('doi', study.title)"
               >
                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path>
@@ -96,7 +98,9 @@
               <a 
                 :href="study.pubmedUrl" 
                 target="_blank" 
-                class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs hover:bg-blue-200 transition-colors"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs hover:bg-blue-200 active:bg-blue-300 transition-colors touch-manipulation"
+                @click="trackPaperClick('pubmed', study.title)"
               >
                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
@@ -108,8 +112,10 @@
               <a 
                 :href="study.pdfUrl" 
                 target="_blank" 
-                class="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs hover:bg-red-200 transition-colors"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs hover:bg-red-200 active:bg-red-300 transition-colors touch-manipulation"
                 title="Alternative PDF access"
+                @click="trackPaperClick('pdf', study.title)"
               >
                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path>
@@ -121,7 +127,9 @@
               <a 
                 :href="study.googleScholarUrl" 
                 target="_blank" 
-                class="inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs hover:bg-yellow-200 transition-colors"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs hover:bg-yellow-200 active:bg-yellow-300 transition-colors touch-manipulation"
+                @click="trackPaperClick('scholar', study.title)"
               >
                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 000 1.838l-8.921 3.823a1 1 0 00-.502 1.321A1 1 0 001 17h18a1 1 0 00.902-1.43l-9.507-20.275a1 1 0 00-.901-.565z"></path>
@@ -133,7 +141,9 @@
               <a 
                 :href="study.researchGateUrl" 
                 target="_blank" 
-                class="inline-flex items-center px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs hover:bg-teal-200 transition-colors"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs hover:bg-teal-200 active:bg-teal-300 transition-colors touch-manipulation"
+                @click="trackPaperClick('researchgate', study.title)"
               >
                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
@@ -251,7 +261,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 interface Props {
   results: {
@@ -470,7 +480,8 @@ const subscribeToUpdates = async () => {
   isSubscribing.value = true
   
   try {
-    const response = await fetch('/api/subscriptions', {
+    const backendUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : `http://${window.location.hostname}:3001`
+    const response = await fetch(`${backendUrl}/api/subscriptions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -498,6 +509,34 @@ const subscribeToUpdates = async () => {
     isSubscribing.value = false
   }
 }
+
+// Track research paper clicks for analytics
+const trackPaperClick = (source: string, title: string) => {
+  // Log the click for analytics
+  console.log(`📊 Research paper accessed: ${source} - ${title}`)
+  
+  // In a production environment, you could send this to your analytics service
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'research_paper_click', {
+      'event_category': 'engagement',
+      'event_label': source,
+      'custom_parameter_1': title
+    })
+  }
+  
+  // Show a brief mobile-friendly notification
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    const toast = document.createElement('div')
+    toast.textContent = `📄 Opening ${source === 'doi' ? 'research paper' : source}...`
+    toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm z-50 transition-all duration-300'
+    document.body.appendChild(toast)
+    
+    setTimeout(() => {
+      toast.style.opacity = '0'
+      setTimeout(() => document.body.removeChild(toast), 300)
+    }, 2000)
+  }
+}
 </script>
 
 <style scoped>
@@ -519,5 +558,30 @@ const subscribeToUpdates = async () => {
 
 .prose li {
   @apply ml-4 mb-1;
+}
+
+/* Mobile-optimized touch interactions */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 768px) {
+  /* Larger tap targets on mobile */
+  .touch-manipulation {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px !important;
+  }
+  
+  /* Better spacing between research paper links on mobile */
+  .flex-wrap {
+    gap: 8px !important;
+  }
+  
+  /* Ensure cards have enough padding on mobile */
+  .rounded-xl {
+    margin: 0 4px;
+  }
 }
 </style>

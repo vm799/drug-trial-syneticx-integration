@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MedResearch AI - Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="512" height="512" style="border: 1px solid #ccc;"></canvas>
+    <br><br>
+    <button onclick="generateIcons()">Generate Icons</button>
+    <div id="links"></div>
+
+    <script>
+        function generateIcon(size, text, bgColor = '#0ea5e9', textColor = '#ffffff') {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, bgColor);
+            gradient.addColorStop(1, '#3b82f6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Border radius simulation with clipping
+            ctx.beginPath();
+            const radius = size * 0.15;
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            ctx.clip();
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Medical cross symbol
+            ctx.fillStyle = textColor;
+            const crossSize = size * 0.4;
+            const crossThickness = size * 0.08;
+            const centerX = size / 2;
+            const centerY = size / 2;
+            
+            // Horizontal bar
+            ctx.fillRect(centerX - crossSize/2, centerY - crossThickness/2, crossSize, crossThickness);
+            // Vertical bar
+            ctx.fillRect(centerX - crossThickness/2, centerY - crossSize/2, crossThickness, crossSize);
+            
+            // AI text
+            ctx.font = `bold ${size * 0.12}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillText('AI', centerX, centerY + crossSize/2 + size * 0.1);
+            
+            return canvas;
+        }
+        
+        function generateIcons() {
+            const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            const linksDiv = document.getElementById('links');
+            linksDiv.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const canvas = generateIcon(size, 'AI');
+                const link = document.createElement('a');
+                link.download = `icon-${size}x${size}.png`;
+                link.href = canvas.toDataURL();
+                link.textContent = `Download ${size}x${size} icon`;
+                link.style.display = 'block';
+                link.style.margin = '5px 0';
+                linksDiv.appendChild(link);
+            });
+            
+            // Show preview
+            const previewCanvas = document.getElementById('canvas');
+            const ctx = previewCanvas.getContext('2d');
+            const preview = generateIcon(512, 'AI');
+            ctx.clearRect(0, 0, 512, 512);
+            ctx.drawImage(preview, 0, 0);
+        }
+        
+        // Generate on load
+        window.onload = generateIcons;
+    </script>
+</body>
+</html>
