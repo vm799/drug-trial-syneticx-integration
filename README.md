@@ -1,13 +1,13 @@
-# MedResearch AI - Enterprise Medical Research Platform
+# 🔬 MedResearch AI - Clinical Trial & Drug Research Assistant
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/vm799/drug-trial-synetixc-integration)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
-[![Vue](https://img.shields.io/badge/vue-3.5.17-brightgreen.svg)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-5.8-blue.svg)](https://www.typescriptlang.org/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/vm799/drug-trial-synetixc-integration/ci.yml?branch=main)](https://github.com/vm799/drug-trial-synetixc-integration/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/vm799/drug-trial-synetixc-integration)](https://codecov.io/gh/vm799/drug-trial-synetixc-integration)
-[![Security](https://img.shields.io/snyk/vulnerabilities/github/vm799/drug-trial-synetixc-integration)](https://snyk.io/test/github/vm799/drug-trial-synetixc-integration)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/vm799/drug-trial-syneticx-integration) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/) [![Vue](https://img.shields.io/badge/vue-3.5.20-brightgreen.svg)](https://vuejs.org/)
+
+**Enterprise-grade AI-powered medical research platform with advanced multi-agent orchestration, Progressive Web App capabilities, and real-time research paper access.**
+
+## 🚀 **Live Demo**
+- **Production**: https://drug-trial-synetixc-integration-1.onrender.com/
+- **Status**: All Systems Operational
+- **Demo Query**: Try "aspirin" or "CAR-T cell therapy"
 
 A **production-ready, enterprise-grade AI-powered medical research platform** with advanced multi-agent orchestration, comprehensive validation systems, and enterprise security features designed for the medical research community.
 
