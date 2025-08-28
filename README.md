@@ -6,8 +6,77 @@
 
 ## 🚀 **Live Demo**
 - **Production**: https://drug-trial-synetixc-integration-1.onrender.com/
-- **Status**: All Systems Operational
+- **Status**: All Systems Operational  
 - **Demo Query**: Try "aspirin" or "CAR-T cell therapy"
+
+## 🏗️ **System Architecture Overview**
+
+```mermaid
+graph TB
+    subgraph "👤 User Interface"
+        USER[Medical Professional]
+        FE[Vue 3 + TypeScript]
+        PWA[📱 Progressive Web App]
+    end
+    
+    subgraph "🌐 Security & Gateway"
+        LB[Load Balancer]
+        AUTH[JWT Authentication] 
+        RL[Rate Limiting<br/>100 req/15min]
+    end
+    
+    subgraph "🤖 AI Agent Orchestra"
+        COORD[🎯 Coordinator Agent]
+        RA[🔬 Research Agent]
+        TMA[🧪 Trial Agent]
+        VA[✅ Validation Agent]
+    end
+    
+    subgraph "🗄️ Data Layer"
+        REDIS[(Redis Cache)]
+        MONGO[(MongoDB)]
+    end
+    
+    subgraph "🌐 Medical Databases"
+        PUBMED[📚 PubMed<br/>35M Papers]
+        CLINICAL[🏥 ClinicalTrials.gov]
+        OPENAI[🧠 OpenAI GPT-4]
+        FDA[🏛️ FDA Database]
+    end
+    
+    USER --> FE
+    FE --> LB
+    LB --> AUTH
+    AUTH --> RL
+    RL --> COORD
+    
+    COORD --> RA
+    COORD --> TMA  
+    COORD --> VA
+    
+    RA --> PUBMED
+    RA --> OPENAI
+    TMA --> CLINICAL
+    TMA --> FDA
+    VA --> PUBMED
+    
+    COORD --> REDIS
+    COORD --> MONGO
+    
+    classDef user fill:#e1f5fe
+    classDef security fill:#f3e5f5
+    classDef agent fill:#fce4ec
+    classDef data fill:#f1f8e9
+    classDef external fill:#e0f2f1
+    
+    class USER,FE,PWA user
+    class LB,AUTH,RL security
+    class COORD,RA,TMA,VA agent
+    class REDIS,MONGO data
+    class PUBMED,CLINICAL,OPENAI,FDA external
+```
+
+> **Query Flow**: User enters "aspirin" → Authentication & Rate Limiting → Coordinator Agent dispatches Research Agent to PubMed (35M papers) + Trial Agent to ClinicalTrials.gov + Validation Agent cross-references → Results cached in Redis/MongoDB → Structured response with research papers, clinical trials, and professional system notices.
 
 A **production-ready, enterprise-grade AI-powered medical research platform** with advanced multi-agent orchestration, comprehensive validation systems, and enterprise security features designed for the medical research community.
 
