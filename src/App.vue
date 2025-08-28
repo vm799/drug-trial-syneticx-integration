@@ -108,21 +108,23 @@
             </div>
 
             <!-- Chat Input -->
-            <div class="flex space-x-2">
-              <input 
+            <div class="flex flex-col space-y-2">
+              <textarea 
                 v-model="chatMessage" 
-                @keyup.enter="sendMessage"
-                type="text" 
-                placeholder="Please type in drug or medication you would like to run a detailed search on (e.g., 'CAR-T cell therapy', 'CRISPR gene editing', 'Immunotherapy')"
-                class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium placeholder-gray-500 bg-white"
-              >
-              <button 
-                @click="sendMessage"
-                :disabled="isLoading"
-                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
-              >
-                {{ isLoading ? 'Processing...' : 'Analyze' }}
-              </button>
+                @keyup.enter.prevent="sendMessage"
+                rows="3"
+                placeholder="Please type in your query here e.g. CAR-T cell therapy, CRISPR gene editing, Immunotherapy combinations, mRNA vaccines"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium placeholder-gray-500 bg-white resize-y min-h-[80px]"
+              ></textarea>
+              <div class="flex justify-end">
+                <button 
+                  @click="sendMessage"
+                  :disabled="isLoading"
+                  class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
+                >
+                  {{ isLoading ? 'Processing...' : 'Analyze' }}
+                </button>
+              </div>
             </div>
 
             <!-- AI Response Area - This is where findings appear -->
@@ -238,9 +240,10 @@ const sendMessage = async () => {
   try {
     // Call the actual backend API (use current host for mobile compatibility)
     const currentHost = window.location.hostname
+    const currentProtocol = window.location.protocol
     const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
       'http://localhost:3001' : 
-      `http://${currentHost}:3001`
+      `${currentProtocol}//${currentHost}`
     const response = await fetch(`${backendUrl}/api/chat`, {
       method: 'POST',
       headers: {
@@ -299,9 +302,10 @@ const sendMessage = async () => {
 const checkSystemStatus = async () => {
   try {
     const currentHost = window.location.hostname
+    const currentProtocol = window.location.protocol
     const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
       'http://localhost:3001' : 
-      `http://${currentHost}:3001`
+      `${currentProtocol}//${currentHost}`
     const response = await fetch(`${backendUrl}/health`)
     if (response.ok) {
       const healthData = await response.json()
