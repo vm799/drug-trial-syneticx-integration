@@ -26,7 +26,14 @@ router.post("/", async (req, res) => {
     
     // Check if OpenAI is configured, if not return demo response
     if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-openai-api-key-here') {
-      return res.json(createDemoResponse(query));
+      return res.json({
+        ...createDemoResponse(query),
+        systemNotice: {
+          type: 'info',
+          title: 'System Information',
+          message: 'Apologies, the AI databases may need some assistance as the external research APIs are currently experiencing connectivity issues. Please speak to the admin team for full AI functionality. Currently showing demo research data for your query.'
+        }
+      });
     }
     
     const coord = initializeAI();
@@ -34,8 +41,15 @@ router.post("/", async (req, res) => {
     res.json(results);
   } catch (err) {
     console.error('Chat route error:', err);
-    // Fallback to demo response if AI fails
-    res.json(createDemoResponse(req.body.query || 'medical query'));
+    // Return professional error message with fallback demo data
+    res.json({
+      ...createDemoResponse(req.body.query || 'medical query'),
+      systemNotice: {
+        type: 'info',
+        title: 'System Information',
+        message: 'Apologies, the AI databases may need some assistance as the external research APIs are currently experiencing connectivity issues. Please speak to the admin team for full AI functionality. Currently showing demo research data for your query.'
+      }
+    });
   }
 });
 
