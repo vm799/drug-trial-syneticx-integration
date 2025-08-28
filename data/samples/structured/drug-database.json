@@ -1,0 +1,257 @@
+{
+  "drugs": [
+    {
+      "drug_id": "DRUG001",
+      "generic_name": "Metformin",
+      "brand_names": ["Glucophage", "Fortamet", "Glumetza", "Riomet"],
+      "drug_class": "Biguanide",
+      "therapeutic_category": "Antidiabetic Agent",
+      "mechanism_of_action": "Decreases hepatic glucose production, decreases intestinal absorption of glucose, improves insulin sensitivity",
+      "indications": [
+        "Type 2 diabetes mellitus",
+        "Prediabetes (off-label)",
+        "Polycystic ovary syndrome (off-label)"
+      ],
+      "dosage_forms": [
+        {
+          "form": "Tablet",
+          "strengths": ["500mg", "850mg", "1000mg"],
+          "route": "Oral"
+        },
+        {
+          "form": "Extended-release tablet", 
+          "strengths": ["500mg", "750mg", "1000mg"],
+          "route": "Oral"
+        },
+        {
+          "form": "Oral solution",
+          "strengths": ["500mg/5mL"],
+          "route": "Oral"
+        }
+      ],
+      "typical_dosing": {
+        "initial_dose": "500mg twice daily with meals",
+        "maximum_dose": "2550mg daily",
+        "titration": "Increase by 500mg weekly based on tolerability"
+      },
+      "contraindications": [
+        "Severe renal impairment (eGFR < 30 mL/min/1.73m²)",
+        "Acute or chronic metabolic acidosis",
+        "Diabetic ketoacidosis",
+        "Severe heart failure requiring pharmacologic treatment"
+      ],
+      "side_effects": {
+        "common": [
+          "Gastrointestinal upset",
+          "Nausea", 
+          "Diarrhea",
+          "Abdominal pain",
+          "Metallic taste"
+        ],
+        "serious": [
+          "Lactic acidosis (rare)",
+          "Vitamin B12 deficiency (long-term use)"
+        ]
+      },
+      "drug_interactions": [
+        {
+          "drug": "Alcohol",
+          "interaction": "Increased risk of lactic acidosis",
+          "severity": "Major"
+        },
+        {
+          "drug": "Iodinated contrast media",
+          "interaction": "Increased risk of lactic acidosis and acute kidney injury",
+          "severity": "Major"
+        },
+        {
+          "drug": "Carbonic anhydrase inhibitors",
+          "interaction": "Increased risk of lactic acidosis",
+          "severity": "Moderate"
+        }
+      ],
+      "monitoring_parameters": [
+        "Renal function (eGFR)",
+        "Vitamin B12 levels (annually)",
+        "Liver function tests",
+        "HbA1c",
+        "Fasting glucose"
+      ]
+    },
+    {
+      "drug_id": "DRUG002",
+      "generic_name": "Atorvastatin",
+      "brand_names": ["Lipitor", "Atorlip", "Atocor"],
+      "drug_class": "HMG-CoA Reductase Inhibitor (Statin)",
+      "therapeutic_category": "Antilipemic Agent",
+      "mechanism_of_action": "Inhibits HMG-CoA reductase, the rate-limiting enzyme in cholesterol synthesis",
+      "indications": [
+        "Primary hypercholesterolemia",
+        "Mixed dyslipidemia",
+        "Primary prevention of cardiovascular disease",
+        "Secondary prevention of cardiovascular disease"
+      ],
+      "dosage_forms": [
+        {
+          "form": "Tablet",
+          "strengths": ["10mg", "20mg", "40mg", "80mg"],
+          "route": "Oral"
+        }
+      ],
+      "typical_dosing": {
+        "initial_dose": "20mg once daily",
+        "maximum_dose": "80mg once daily",
+        "titration": "May increase after 2-4 weeks based on lipid response"
+      },
+      "contraindications": [
+        "Active liver disease",
+        "Unexplained persistent elevations in hepatic transaminases",
+        "Pregnancy",
+        "Nursing mothers"
+      ],
+      "side_effects": {
+        "common": [
+          "Headache",
+          "Myalgia", 
+          "Diarrhea",
+          "Nausea",
+          "Fatigue"
+        ],
+        "serious": [
+          "Rhabdomyolysis",
+          "Hepatotoxicity",
+          "Diabetes mellitus (new-onset)"
+        ]
+      },
+      "drug_interactions": [
+        {
+          "drug": "Cyclosporine",
+          "interaction": "Increased atorvastatin exposure, increased risk of myopathy",
+          "severity": "Major"
+        },
+        {
+          "drug": "Gemfibrozil",
+          "interaction": "Increased risk of rhabdomyolysis",
+          "severity": "Major"
+        },
+        {
+          "drug": "Warfarin",
+          "interaction": "Increased anticoagulant effect",
+          "severity": "Moderate"
+        }
+      ],
+      "monitoring_parameters": [
+        "Lipid panel",
+        "Liver function tests (baseline and as needed)",
+        "Creatine kinase (if symptoms of myopathy)",
+        "Blood glucose (baseline and periodically)"
+      ]
+    },
+    {
+      "drug_id": "DRUG003",
+      "generic_name": "Aspirin",
+      "brand_names": ["Bayer Aspirin", "Bufferin", "Ecotrin"],
+      "drug_class": "Nonsteroidal Anti-inflammatory Drug (NSAID)",
+      "therapeutic_category": "Analgesic, Anti-inflammatory, Antiplatelet",
+      "mechanism_of_action": "Irreversibly inhibits cyclooxygenase-1 (COX-1) and cyclooxygenase-2 (COX-2), reducing prostaglandin synthesis",
+      "indications": [
+        "Pain relief (mild to moderate)",
+        "Fever reduction",
+        "Inflammation",
+        "Cardiovascular disease prevention",
+        "Stroke prevention",
+        "Acute coronary syndrome"
+      ],
+      "dosage_forms": [
+        {
+          "form": "Tablet",
+          "strengths": ["81mg", "325mg", "500mg"],
+          "route": "Oral"
+        },
+        {
+          "form": "Enteric-coated tablet",
+          "strengths": ["81mg", "325mg"],
+          "route": "Oral"
+        },
+        {
+          "form": "Chewable tablet",
+          "strengths": ["81mg"],
+          "route": "Oral"
+        }
+      ],
+      "typical_dosing": {
+        "cardiovascular_prevention": "81mg once daily",
+        "analgesic": "325-650mg every 4 hours as needed",
+        "anti_inflammatory": "2400-3600mg daily in divided doses"
+      },
+      "contraindications": [
+        "Hypersensitivity to aspirin or NSAIDs",
+        "Active peptic ulcer disease",
+        "Severe renal impairment",
+        "Severe heart failure",
+        "Children under 16 with viral infections (Reye's syndrome risk)"
+      ],
+      "side_effects": {
+        "common": [
+          "Gastrointestinal irritation",
+          "Nausea",
+          "Dyspepsia",
+          "Abdominal pain"
+        ],
+        "serious": [
+          "Gastrointestinal bleeding",
+          "Peptic ulcer",
+          "Intracranial hemorrhage",
+          "Reye's syndrome (in children)",
+          "Severe allergic reactions"
+        ]
+      },
+      "drug_interactions": [
+        {
+          "drug": "Warfarin",
+          "interaction": "Increased bleeding risk",
+          "severity": "Major"
+        },
+        {
+          "drug": "Methotrexate",
+          "interaction": "Increased methotrexate toxicity",
+          "severity": "Major"
+        },
+        {
+          "drug": "ACE inhibitors",
+          "interaction": "Reduced antihypertensive effect",
+          "severity": "Moderate"
+        }
+      ],
+      "monitoring_parameters": [
+        "Signs of bleeding",
+        "Renal function",
+        "Liver function (with high doses)",
+        "Complete blood count (with long-term use)"
+      ]
+    }
+  ],
+  "drug_relationships": [
+    {
+      "relationship_type": "treats_same_condition",
+      "drug1": "Metformin",
+      "drug2": "Insulin",
+      "condition": "Type 2 Diabetes Mellitus",
+      "notes": "Often used together in combination therapy"
+    },
+    {
+      "relationship_type": "contraindicated_combination", 
+      "drug1": "Aspirin",
+      "drug2": "Warfarin",
+      "reason": "Increased bleeding risk",
+      "severity": "Major"
+    },
+    {
+      "relationship_type": "synergistic_effect",
+      "drug1": "Aspirin",
+      "drug2": "Atorvastatin", 
+      "condition": "Cardiovascular Disease Prevention",
+      "notes": "Complementary mechanisms for cardiovascular protection"
+    }
+  ]
+}

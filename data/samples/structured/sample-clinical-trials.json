@@ -1,0 +1,196 @@
+[
+  {
+    "study_id": "NCT04567890",
+    "title": "Efficacy and Safety of Drug X in Patients with Type 2 Diabetes",
+    "brief_title": "Drug X for T2DM Study",
+    "official_title": "A Phase III, Randomized, Double-Blind, Placebo-Controlled Study of Drug X in Adult Patients with Type 2 Diabetes Mellitus",
+    "study_type": "Interventional",
+    "phase": "Phase 3",
+    "allocation": "Randomized",
+    "intervention_model": "Parallel Assignment",
+    "masking": "Double Blind",
+    "primary_purpose": "Treatment",
+    "enrollment": {
+      "count": 1200,
+      "type": "Actual"
+    },
+    "conditions": [
+      "Type 2 Diabetes Mellitus",
+      "Hyperglycemia",
+      "Metabolic Disorder"
+    ],
+    "interventions": [
+      {
+        "type": "Drug",
+        "name": "Drug X",
+        "description": "Drug X 10mg tablet taken orally once daily",
+        "arm_group_label": "Drug X Treatment",
+        "other_names": ["DrugX", "Compound-123"]
+      },
+      {
+        "type": "Drug",
+        "name": "Placebo",
+        "description": "Matching placebo tablet taken orally once daily",
+        "arm_group_label": "Placebo Control"
+      }
+    ],
+    "primary_outcomes": [
+      {
+        "measure": "Change in HbA1c from baseline to week 24",
+        "time_frame": "24 weeks",
+        "description": "Mean change in glycated hemoglobin (HbA1c) levels"
+      }
+    ],
+    "secondary_outcomes": [
+      {
+        "measure": "Proportion of subjects achieving HbA1c < 7%",
+        "time_frame": "24 weeks"
+      },
+      {
+        "measure": "Change in fasting plasma glucose",
+        "time_frame": "24 weeks"
+      },
+      {
+        "measure": "Change in body weight",
+        "time_frame": "24 weeks"
+      }
+    ],
+    "eligibility": {
+      "gender": "All",
+      "minimum_age": "18 Years",
+      "maximum_age": "75 Years",
+      "healthy_volunteers": false,
+      "criteria": "Inclusion: Adults with T2DM, HbA1c 7.0-10.5%, stable metformin therapy. Exclusion: Type 1 diabetes, severe renal impairment, pregnancy."
+    },
+    "overall_status": "Completed",
+    "start_date": "2023-01-15",
+    "completion_date": "2024-02-28",
+    "location": {
+      "facility": "Multi-center International Study",
+      "city": "Various",
+      "country": "Multiple Countries"
+    },
+    "sponsors": {
+      "lead_sponsor": "PharmaCorp Inc.",
+      "collaborators": ["Academic Research Institute", "Clinical Research Organization"]
+    },
+    "study_results": {
+      "primary_outcome_results": {
+        "baseline_hba1c": 8.2,
+        "week_24_hba1c": 7.1,
+        "mean_change": -1.1,
+        "p_value": "<0.001",
+        "confidence_interval": "95% CI: -1.3 to -0.9"
+      },
+      "adverse_events": [
+        {
+          "event": "Nausea",
+          "drug_x_group": "12%",
+          "placebo_group": "5%"
+        },
+        {
+          "event": "Diarrhea", 
+          "drug_x_group": "8%",
+          "placebo_group": "3%"
+        },
+        {
+          "event": "Hypoglycemia",
+          "drug_x_group": "3%",
+          "placebo_group": "1%"
+        }
+      ]
+    }
+  },
+  {
+    "study_id": "NCT04789123",
+    "title": "Cardiovascular Safety Study of Aspirin in High-Risk Patients",
+    "brief_title": "Aspirin CVD Prevention Study",
+    "official_title": "Long-term Cardiovascular Safety and Efficacy of Low-Dose Aspirin in High-Risk Primary Prevention Patients: A Randomized Controlled Trial",
+    "study_type": "Interventional",
+    "phase": "Phase 4",
+    "allocation": "Randomized",
+    "intervention_model": "Parallel Assignment", 
+    "masking": "Double Blind",
+    "primary_purpose": "Prevention",
+    "enrollment": {
+      "count": 15000,
+      "type": "Actual"
+    },
+    "conditions": [
+      "Cardiovascular Disease",
+      "Primary Prevention",
+      "High Cardiovascular Risk"
+    ],
+    "interventions": [
+      {
+        "type": "Drug",
+        "name": "Aspirin",
+        "description": "Aspirin 81mg enteric-coated tablet taken orally once daily",
+        "arm_group_label": "Aspirin Treatment",
+        "other_names": ["Acetylsalicylic Acid", "ASA"]
+      },
+      {
+        "type": "Drug", 
+        "name": "Placebo",
+        "description": "Matching placebo tablet taken orally once daily",
+        "arm_group_label": "Placebo Control"
+      }
+    ],
+    "primary_outcomes": [
+      {
+        "measure": "Major Cardiovascular Events (MACE)",
+        "time_frame": "5 years",
+        "description": "Composite of cardiovascular death, non-fatal myocardial infarction, and non-fatal stroke"
+      }
+    ],
+    "secondary_outcomes": [
+      {
+        "measure": "All-cause mortality",
+        "time_frame": "5 years"
+      },
+      {
+        "measure": "Major bleeding events",
+        "time_frame": "5 years"
+      },
+      {
+        "measure": "Gastrointestinal bleeding",
+        "time_frame": "5 years"
+      }
+    ],
+    "eligibility": {
+      "gender": "All",
+      "minimum_age": "50 Years",
+      "maximum_age": "80 Years", 
+      "healthy_volunteers": false,
+      "criteria": "Inclusion: Age 50-80, elevated CVD risk score, no history of CVD. Exclusion: Prior CVD events, bleeding disorders, aspirin allergy."
+    },
+    "overall_status": "Active, not recruiting",
+    "start_date": "2020-03-10",
+    "completion_date": "2025-12-31",
+    "location": {
+      "facility": "International Multi-center Study",
+      "city": "Various",
+      "country": "US, UK, Canada, Australia"
+    },
+    "sponsors": {
+      "lead_sponsor": "Cardiovascular Research Foundation",
+      "collaborators": ["National Heart Institute", "Global Health Organization"]
+    },
+    "interim_results": {
+      "interim_analysis_date": "2024-06-30",
+      "mace_events": {
+        "aspirin_group": "8.2%",
+        "placebo_group": "10.1%",
+        "hazard_ratio": 0.81,
+        "confidence_interval": "95% CI: 0.73-0.91",
+        "p_value": "0.0003"
+      },
+      "bleeding_events": {
+        "major_bleeding_aspirin": "2.3%",
+        "major_bleeding_placebo": "1.1%",
+        "gi_bleeding_aspirin": "1.8%",
+        "gi_bleeding_placebo": "0.7%"
+      }
+    }
+  }
+]

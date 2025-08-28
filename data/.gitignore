@@ -1,0 +1,20 @@
+# User uploaded files (don't commit user data)
+user-uploads/
+
+# Processed knowledge graphs (can be large)
+processed/*.json
+processed/*.cypher
+processed/*.networkx
+
+# Temporary processing files
+temp/
+cache/
+
+# Keep directory structure but ignore contents
+user-uploads/.gitkeep
+processed/.gitkeep
+
+# Allow sample files to be committed
+!samples/
+!samples/**/*
+!README.md

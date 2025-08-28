@@ -29,6 +29,7 @@ import researchRoutes from './routes/research.js'
 import analyticsRoutes from './routes/analytics.js'
 import userRoutes from './routes/user.js'
 import subscriptionRoutes from './routes/subscriptions.js'
+import knowledgeGraphRoutes from './routes/knowledge-graph.js'
 
 const app = express()
 const server = createServer(app)
@@ -115,6 +116,7 @@ app.use('/api/research', authMiddleware, researchRoutes)
 app.use('/api/analytics', authMiddleware, analyticsRoutes)
 app.use('/api/user', authMiddleware, userRoutes)
 app.use('/api/subscriptions', subscriptionRoutes) // Email subscription routes
+app.use('/api/knowledge-graph', knowledgeGraphRoutes) // Knowledge graph construction and querying
 
 // Serve frontend (single-URL deployment)
 const __filename = fileURLToPath(import.meta.url)
