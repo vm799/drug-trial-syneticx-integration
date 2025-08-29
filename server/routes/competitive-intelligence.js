@@ -16,8 +16,12 @@ const competitiveAgent = new CompetitiveIntelligenceAgent(openaiService)
 
 // @route   GET /api/competitive-intelligence/dashboard
 // @desc    Get competitive intelligence dashboard data
-// @access  Private
-router.get('/dashboard', auth, async (req, res) => {
+// @access  Public (Development) / Private (Production)
+router.get('/dashboard', process.env.NODE_ENV === 'production' ? auth : (req, res, next) => {
+  // Mock user for development
+  req.user = { _id: 'demo-user', subscription: 'premium' }
+  next()
+}, async (req, res) => {
   try {
     const { threatLevel, sortBy = 'threat', limit = 20 } = req.query
 
@@ -47,7 +51,7 @@ router.get('/dashboard', auth, async (req, res) => {
     }
 
     // Get competitors
-    const competitors = await CompetitiveIntelligence.find(query)
+    let competitors = await CompetitiveIntelligence.find(query)
       .sort(sortCriteria)
       .limit(parseInt(limit))
       .select(`
@@ -55,19 +59,64 @@ router.get('/dashboard', auth, async (req, res) => {
         pipelineAnalysis patentPortfolio recentActivities lastAnalyzed
       `)
 
-    // Calculate threat summary
-    const allCompetitors = await CompetitiveIntelligence.find({ 'monitoringStatus.active': true })
-    const threatSummary = allCompetitors.reduce((acc, comp) => {
+    // Fallback to demo data if no competitors found (development mode)
+    if (competitors.length === 0 && process.env.NODE_ENV !== 'production') {
+      competitors = [
+        {
+          _id: 'comp1',
+          companyInfo: { name: 'MegaPharma Inc.', ticker: 'MEGA' },
+          threatScore: 87,
+          overallThreat: 'critical',
+          financialMetrics: { marketCap: 125000000000 },
+          pipelineAnalysis: { totalAssets: 15 },
+          patentPortfolio: { totalPatents: 234 },
+          recentActivities: [
+            { type: 'acquisition', description: 'Acquired BioTech startup for $2.1B', date: new Date() }
+          ],
+          lastAnalyzed: new Date()
+        },
+        {
+          _id: 'comp2',
+          companyInfo: { name: 'GlobalBio Corp.', ticker: 'GLOB' },
+          threatScore: 72,
+          overallThreat: 'high', 
+          financialMetrics: { marketCap: 89000000000 },
+          pipelineAnalysis: { totalAssets: 12 },
+          patentPortfolio: { totalPatents: 156 },
+          recentActivities: [
+            { type: 'partnership', description: 'Strategic partnership with TechMed', date: new Date() }
+          ],
+          lastAnalyzed: new Date()
+        },
+        {
+          _id: 'comp3',
+          companyInfo: { name: 'InnovateMed Ltd.', ticker: 'INNO' },
+          threatScore: 58,
+          overallThreat: 'medium',
+          financialMetrics: { marketCap: 34000000000 },
+          pipelineAnalysis: { totalAssets: 8 },
+          patentPortfolio: { totalPatents: 89 },
+          recentActivities: [
+            { type: 'clinical_trial', description: 'Phase III trial results exceeded expectations', date: new Date() }
+          ],
+          lastAnalyzed: new Date()
+        }
+      ]
+    }
+
+    // Calculate threat summary using current competitors data
+    const competitorsForSummary = competitors.length > 0 ? competitors : []
+    const threatSummary = competitorsForSummary.reduce((acc, comp) => {
       acc[comp.overallThreat] = (acc[comp.overallThreat] || 0) + 1
       return acc
     }, { critical: 0, high: 0, medium: 0, low: 0 })
 
     // Calculate total market metrics
-    const totalMarketCap = allCompetitors.reduce((sum, comp) => 
+    const totalMarketCap = competitorsForSummary.reduce((sum, comp) => 
       sum + (comp.financialMetrics?.marketCap || 0), 0
     )
     
-    const totalPipelineAssets = allCompetitors.reduce((sum, comp) => 
+    const totalPipelineAssets = competitorsForSummary.reduce((sum, comp) => 
       sum + (comp.pipelineAnalysis?.totalAssets || 0), 0
     )
 
@@ -161,13 +210,16 @@ router.get('/dashboard', auth, async (req, res) => {
       lastAnalyzed: comp.lastAnalyzed
     }))
 
-    logger.apiUsage(req.user._id, 'competitive_intelligence_dashboard', 0, 0)
+    // Log API usage if user exists
+    if (req.user && logger.apiUsage) {
+      logger.apiUsage(req.user._id, 'competitive_intelligence_dashboard', 0, 0)
+    }
 
     res.json({
       success: true,
       data: {
         summary: {
-          totalCompetitors: allCompetitors.length,
+          totalCompetitors: competitorsForSummary.length,
           threatBreakdown: threatSummary,
           totalMarketCap,
           totalPipelineAssets

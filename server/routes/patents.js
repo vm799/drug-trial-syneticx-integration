@@ -19,13 +19,65 @@ const usptoService = new USPTOApiService()
 
 // @route   GET /api/patents/cliff-monitor
 // @desc    Get patent cliff monitoring dashboard data
-// @access  Private
-router.get('/cliff-monitor', auth, async (req, res) => {
+// @access  Public (Development) / Private (Production)
+router.get('/cliff-monitor', process.env.NODE_ENV === 'production' ? auth : (req, res, next) => {
+  // Mock user for development
+  req.user = { _id: 'demo-user', subscription: 'premium' }
+  next()
+}, async (req, res) => {
   try {
     const { timeframe = 24, riskLevel, sortBy = 'risk' } = req.query
 
     // Get expiring patents within timeframe
-    const expiringPatents = await Patent.findExpiringPatents(parseInt(timeframe))
+    let expiringPatents = await Patent.findExpiringPatents(parseInt(timeframe))
+    
+    // Fallback to demo data if no patents found (development mode)
+    if (expiringPatents.length === 0 && process.env.NODE_ENV !== 'production') {
+      expiringPatents = [
+        {
+          _id: 'demo1',
+          patentNumber: 'US9,876,543',
+          drugInfo: { drugName: 'Demozumab', therapeuticArea: 'Oncology' },
+          assignee: { name: 'PharmaCorp Inc.' },
+          expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000),
+          daysToExpiry: 180,
+          cliffAnalysis: { 
+            cliffRisk: 'critical',
+            genericThreat: { level: 'high', potentialEntrants: ['Generic Corp', 'ValueMed'] }
+          },
+          marketImpact: { estimatedRevenue: 750000000 },
+          strategicValue: { importance: 'high' }
+        },
+        {
+          _id: 'demo2', 
+          patentNumber: 'US8,765,432',
+          drugInfo: { drugName: 'Placebolin', therapeuticArea: 'Cardiology' },
+          assignee: { name: 'HealthTech Ltd.' },
+          expiryDate: new Date(Date.now() + 420 * 24 * 60 * 60 * 1000),
+          daysToExpiry: 420,
+          cliffAnalysis: { 
+            cliffRisk: 'high',
+            genericThreat: { level: 'medium', potentialEntrants: ['BioGeneric'] }
+          },
+          marketImpact: { estimatedRevenue: 350000000 },
+          strategicValue: { importance: 'medium' }
+        },
+        {
+          _id: 'demo3',
+          patentNumber: 'US7,654,321', 
+          drugInfo: { drugName: 'Trialex', therapeuticArea: 'Neurology' },
+          assignee: { name: 'BioAdvance Corp.' },
+          expiryDate: new Date(Date.now() + 700 * 24 * 60 * 60 * 1000),
+          daysToExpiry: 700,
+          cliffAnalysis: { 
+            cliffRisk: 'medium',
+            genericThreat: { level: 'low', potentialEntrants: [] }
+          },
+          marketImpact: { estimatedRevenue: 150000000 },
+          strategicValue: { importance: 'medium' }
+        }
+      ]
+    }
     
     // Filter by risk level if specified
     let filteredPatents = expiringPatents
@@ -81,7 +133,10 @@ router.get('/cliff-monitor', auth, async (req, res) => {
       therapeuticArea: patent.drugInfo.therapeuticArea
     }))
 
-    logger.apiUsage(req.user._id, 'patent_cliff_monitor', 0, 0)
+    // Log API usage if user exists
+    if (req.user && logger.apiUsage) {
+      logger.apiUsage(req.user._id, 'patent_cliff_monitor', 0, 0)
+    }
 
     res.json({
       success: true,

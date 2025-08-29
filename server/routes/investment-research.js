@@ -15,9 +15,13 @@ const investmentAgent = new InvestmentResearchAgent(openaiService)
 
 // @route   POST /api/investment-research/patent-cliff-impact
 // @desc    Analyze patent cliff impact for investment decisions
-// @access  Private (Premium)
+// @access  Public (Development) / Private (Production)
 router.post('/patent-cliff-impact',
-  premiumAuth,
+  process.env.NODE_ENV === 'production' ? premiumAuth : (req, res, next) => {
+    // Mock premium user for development
+    req.user = { _id: 'demo-user', subscription: 'premium', updateApiUsage: async () => {} }
+    next()
+  },
   [
     body('companyName').notEmpty().withMessage('Company name is required'),
     body('analysisTimeframe').optional().isInt({ min: 1, max: 20 }),
