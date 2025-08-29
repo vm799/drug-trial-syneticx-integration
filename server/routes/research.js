@@ -2,7 +2,7 @@ import express from 'express'
 import { body, query, validationResult } from 'express-validator'
 import ResearchPaper from '../models/ResearchPaper.js'
 import ChatSession from '../models/ChatSession.js'
-import openaiService from '../services/openaiService.js'
+import getOpenAIService from '../services/openaiService.js'
 import logger from '../utils/logger.js'
 import { premiumAuth } from '../middleware/auth.js'
 
@@ -302,6 +302,7 @@ router.post(
       }
 
       // Generate AI analysis
+      const openaiService = getOpenAIService()
       const startTime = Date.now()
       const analysis = await openaiService.generateResponse(
         [{ role: 'user', content: prompt }],

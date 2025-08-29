@@ -1,13 +1,14 @@
 // server/routes/knowledge-graph.js
 import express from 'express';
 import Coordinator from '../agents/Coordinator.js';
-import { openai } from '../services/openaiService.js';
+import getOpenAIService from '../services/openaiService.js';
 import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Initialize coordinator with knowledge graph capabilities
-const coordinator = new Coordinator(openai);
+// Initialize services
+const openaiService = getOpenAIService();
+const coordinator = new Coordinator(openaiService);
 
 /**
  * POST /api/knowledge-graph/construct
