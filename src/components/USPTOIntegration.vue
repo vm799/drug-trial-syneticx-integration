@@ -24,6 +24,24 @@
 			<button @click="search" :disabled="loading || !query" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Searching...' : 'Search' }}</button>
 		</div>
 
+		<!-- Data Source Indicator -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<div class="flex items-center space-x-2">
+				<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+				<div>
+					<h4 class="font-medium text-blue-900">Data Source Information</h4>
+					<p class="text-sm text-blue-700">
+						<span v-if="dataSource === 'demo'" class="font-semibold">📊 DEMO DATA:</span> 
+						<span v-else-if="dataSource === 'real'" class="font-semibold">✅ REAL DATA:</span>
+						<span v-else class="font-semibold">❓ UNKNOWN:</span>
+						{{ dataSourceDescription }}
+					</p>
+				</div>
+			</div>
+		</div>
+
 		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm flex items-center justify-between">
 			<span>{{ error }}</span>
 			<button class="px-3 py-1 bg-red-600 text-white rounded text-xs" @click="search">Retry</button>
@@ -66,6 +84,8 @@ const type = ref<'patents' | 'applications'>('patents')
 const loading = ref(false)
 const error = ref('')
 const results = ref<any[]>([])
+const dataSource = ref<'demo' | 'real' | 'unknown'>('unknown')
+const dataSourceDescription = ref('No search performed yet')
 
 function formatDate(d?: string): string {
 	if (!d) return ''
@@ -75,16 +95,80 @@ function formatDate(d?: string): string {
 async function search() {
 	loading.value = true
 	error.value = ''
+	dataSource.value = 'unknown'
+	dataSourceDescription.value = 'Searching USPTO...'
+	
 	try {
 		const data = await api.searchUSPTO({ query: query.value, type: type.value, page: 1 })
-		results.value = data.results || data.items || []
+		
+		if (data.results && data.results.length > 0) {
+			results.value = data.results
+			
+			// Determine data source from response
+			if (data.metadata?.dataSource === 'REAL_USPTO_API' || data.metadata?.dataSource === 'REAL_GOOGLE_PATENTS_API') {
+				dataSource.value = 'real'
+				dataSourceDescription.value = `Live data from ${data.metadata.dataSource} - ${data.results.length} results found - Last updated: ${data.metadata.lastUpdated || 'Unknown'}`
+			} else if (data.metadata?.dataSource === 'MOCK_DATA') {
+				dataSource.value = 'demo'
+				dataSourceDescription.value = `Demo data for demonstration - ${data.metadata.reason || 'No real USPTO data available'}`
+			} else {
+				dataSource.value = 'unknown'
+				dataSourceDescription.value = 'Data source could not be determined'
+			}
+		} else {
+			results.value = []
+			dataSource.value = 'unknown'
+			dataSourceDescription.value = 'No results found'
+		}
+		
 	} catch (e: any) {
-		error.value = e?.message || 'Search failed'
-		// Fallback demo results
-		results.value = [
-			{ id: 'demoUSPTO1', patentNumber: 'US9876543', title: 'CRISPR delivery method', assignee: { name: 'DemoBio' }, date: new Date().toISOString() },
-			{ id: 'demoUSPTO2', patentNumber: 'US8765432', title: 'mRNA vaccine formulation', assignee: { name: 'HealthCorp' }, date: new Date().toISOString() },
-		]
+		console.error('USPTO search error:', e)
+		
+		// Check specific error types
+		if (e?.message?.includes('authorization') || e?.message?.includes('401') || e?.message?.includes('403')) {
+			error.value = 'Authorization error: USPTO API access denied. Please check API credentials.'
+			dataSource.value = 'unknown'
+			dataSourceDescription.value = 'Authorization failed - cannot access USPTO data'
+		} else if (e?.message?.includes('endpoint') || e?.message?.includes('404') || e?.message?.includes('500')) {
+			error.value = 'USPTO API endpoint error: Service temporarily unavailable. Using demo data instead.'
+			dataSource.value = 'demo'
+			dataSourceDescription.value = 'USPTO API failed - showing demo data for demonstration'
+			
+			// Provide demo results as fallback
+			results.value = [
+				{ 
+					id: 'demoUSPTO1', 
+					patentNumber: 'US9876543', 
+					title: 'CRISPR delivery method for gene editing', 
+					assignee: { name: 'DemoBio Inc.' }, 
+					date: new Date().toISOString(),
+					_dataSource: 'MOCK_DATA',
+					_reason: 'USPTO API endpoint failed'
+				},
+				{ 
+					id: 'demoUSPTO2', 
+					patentNumber: 'US8765432', 
+					title: 'mRNA vaccine formulation and delivery system', 
+					assignee: { name: 'HealthCorp Ltd.' }, 
+					date: new Date().toISOString(),
+					_dataSource: 'MOCK_DATA',
+					_reason: 'USPTO API endpoint failed'
+				},
+				{ 
+					id: 'demoUSPTO3', 
+					patentNumber: 'US7654321', 
+					title: 'Novel cancer immunotherapy treatment', 
+					assignee: { name: 'OncoTech Solutions' }, 
+					date: new Date().toISOString(),
+					_dataSource: 'MOCK_DATA',
+					_reason: 'USPTO API endpoint failed'
+				}
+			]
+		} else {
+			error.value = e?.message || 'USPTO search failed. Please try again.'
+			dataSource.value = 'unknown'
+			dataSourceDescription.value = 'Search failed - error occurred'
+		}
 	} finally {
 		loading.value = false
 	}

@@ -223,6 +223,9 @@
           </div>
         </div>
 
+        <!-- Data Source Status Dashboard -->
+        <DataSourceStatus />
+
         <!-- Data Quality Report -->
         <div class="bg-white rounded-xl border border-gray-200">
           <div class="px-6 py-4 border-b border-gray-200">
@@ -239,7 +242,7 @@
                 </div>
                 <div class="bg-green-50 rounded-lg p-4">
                   <div class="text-2xl font-bold text-green-600">{{ qualityReport.refreshStatus.upToDate }}</div>
-                  <div class="text-sm text-green-600">Up to Date</div>
+                  <div class="text-sm text-blue-600">Up to Date</div>
                 </div>
                 <div class="bg-red-50 rounded-lg p-4">
                   <div class="text-2xl font-bold text-red-600">{{ qualityReport.refreshStatus.error }}</div>
@@ -409,6 +412,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import DataSourceStatus from './DataSourceStatus.vue'
 
 // State
 const error = ref(null)
