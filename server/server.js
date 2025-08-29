@@ -16,7 +16,7 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 
 // Import custom modules
-import connectDB from './config/database.js'
+import connectDB, { dbConnected } from './config/database.js'
 import logger from './utils/logger.js'
 import errorHandler from './middleware/errorHandler.js'
 import authMiddleware from './middleware/auth.js'
@@ -108,6 +108,7 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    dbConnected,
   })
 })
 

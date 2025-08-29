@@ -1,6 +1,9 @@
 import mongoose from 'mongoose'
 import logger from '../utils/logger.js'
 
+// Export a lightweight connection status so the server can run in degraded mode
+export let dbConnected = false
+
 const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/medresearch-ai'
@@ -12,22 +15,26 @@ const connectDB = async () => {
     })
 
     logger.info(`🔗 MongoDB Connected: ${conn.connection.host}`)
+    dbConnected = true
 
     // Handle connection events
     mongoose.connection.on('error', (err) => {
       logger.error('MongoDB connection error:', err)
+      dbConnected = false
     })
 
     mongoose.connection.on('disconnected', () => {
       logger.warn('MongoDB disconnected')
+      dbConnected = false
     })
 
     mongoose.connection.on('reconnected', () => {
       logger.info('MongoDB reconnected')
+      dbConnected = true
     })
   } catch (err) {
-    logger.error('Database connection failed:', err)
-    process.exit(1)
+    logger.error('Database connection failed (continuing in degraded mode):', err?.message || err)
+    dbConnected = false
   }
 }
 
