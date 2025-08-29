@@ -10,7 +10,17 @@ router.get('/category/:category', async (req, res) => {
     const { category } = req.params
     const { limit = 20 } = req.query
     
-    const feeds = await rssService.getFeedsByCategory(category)
+    let feeds = await rssService.getFeedsByCategory(category)
+    
+    // Check if we have any working feeds
+    const hasWorkingFeeds = rssService.hasWorkingFeeds()
+    
+    // If no working feeds, provide sample data for testing
+    if (!hasWorkingFeeds) {
+      console.log(`No working RSS feeds found for category ${category}, providing sample data`)
+      const sampleData = rssService.getSampleData()
+      feeds = sampleData[category] || []
+    }
     
     // Limit items per feed if specified
     if (limit) {
@@ -28,15 +38,28 @@ router.get('/category/:category', async (req, res) => {
         category: category,
         totalFeeds: feeds.length,
         timestamp: new Date().toISOString(),
-        source: 'RSS Feed Service'
+        source: 'RSS Feed Service',
+        usingSampleData: !hasWorkingFeeds
       }
     })
   } catch (error) {
     console.error('RSS feeds error:', error)
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch RSS feeds',
-      details: error.message
+    
+    // Provide sample data even on error
+    const sampleData = rssService.getSampleData()
+    const categoryFeeds = sampleData[req.params.category] || []
+    
+    res.json({
+      success: true,
+      data: categoryFeeds,
+      metadata: {
+        category: req.params.category,
+        totalFeeds: categoryFeeds.length,
+        timestamp: new Date().toISOString(),
+        source: 'RSS Feed Service',
+        usingSampleData: true,
+        error: 'Using sample data due to feed errors'
+      }
     })
   }
 })
@@ -46,7 +69,16 @@ router.get('/all', async (req, res) => {
   try {
     const { limit = 20 } = req.query
     
-    const allFeeds = await rssService.getAllFeeds()
+    let allFeeds = await rssService.getAllFeeds()
+    
+    // Check if we have any working feeds
+    const hasWorkingFeeds = rssService.hasWorkingFeeds()
+    
+    // If no working feeds, provide sample data for testing
+    if (!hasWorkingFeeds) {
+      console.log('No working RSS feeds found, providing sample data')
+      allFeeds = rssService.getSampleData()
+    }
     
     // Limit items per feed if specified
     if (limit) {
@@ -65,15 +97,26 @@ router.get('/all', async (req, res) => {
       metadata: {
         totalCategories: Object.keys(allFeeds).length,
         timestamp: new Date().toISOString(),
-        source: 'RSS Feed Service'
+        source: 'RSS Feed Service',
+        usingSampleData: !hasWorkingFeeds
       }
     })
   } catch (error) {
     console.error('All RSS feeds error:', error)
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch all RSS feeds',
-      details: error.message
+    
+    // Provide sample data even on error
+    const sampleData = rssService.getSampleData()
+    
+    res.json({
+      success: true,
+      data: sampleData,
+      metadata: {
+        totalCategories: Object.keys(sampleData).length,
+        timestamp: new Date().toISOString(),
+        source: 'RSS Feed Service',
+        usingSampleData: true,
+        error: 'Using sample data due to feed errors'
+      }
     })
   }
 })

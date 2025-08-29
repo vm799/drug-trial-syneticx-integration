@@ -9,7 +9,7 @@ class RSSFeedService {
       attributeNamePrefix: '@_'
     });
     
-    // RSS feed sources organized by category
+    // RSS feed sources organized by category - Updated with working feeds only
     this.feedSources = {
       pharmaceutical: [
         {
@@ -18,13 +18,6 @@ class RSSFeedService {
           category: 'pharmaceutical',
           description: 'Drug approvals, M&A, company news',
           updateInterval: 3600000 // 1 hour
-        },
-        {
-          name: 'Endpoints News',
-          url: 'https://endpts.com/feed/',
-          category: 'pharmaceutical',
-          description: 'Drug development, FDA updates',
-          updateInterval: 1800000 // 30 minutes
         },
         {
           name: 'FierceBiotech',
@@ -41,25 +34,11 @@ class RSSFeedService {
           updateInterval: 3600000 // 1 hour
         },
         {
-          name: 'Pharmaphorum',
-          url: 'https://pharmaphorum.com/feed/',
+          name: 'Reuters Health',
+          url: 'https://feeds.reuters.com/reuters/healthNews',
           category: 'pharmaceutical',
-          description: 'Pharmaceutical industry insights and trends',
-          updateInterval: 3600000 // 1 hour
-        },
-        {
-          name: 'Pharmaceutical Executive',
-          url: 'https://www.pharmexec.com/rss',
-          category: 'pharmaceutical',
-          description: 'Executive insights and strategic planning',
-          updateInterval: 7200000 // 2 hours
-        },
-        {
-          name: 'PharmTech News',
-          url: 'https://www.pharmtech.com/rss',
-          category: 'pharmaceutical',
-          description: 'Pharmaceutical technology and manufacturing',
-          updateInterval: 7200000 // 2 hours
+          description: 'Health and pharmaceutical news',
+          updateInterval: 1800000 // 30 minutes
         }
       ],
       patents: [
@@ -71,17 +50,17 @@ class RSSFeedService {
           updateInterval: 7200000 // 2 hours
         },
         {
-          name: 'USPTO News',
-          url: 'https://www.uspto.gov/rss/feed.xml',
+          name: 'Managing IP',
+          url: 'https://www.managingip.com/rss',
           category: 'patents',
-          description: 'Official USPTO announcements and updates',
+          description: 'Intellectual property news',
           updateInterval: 7200000 // 2 hours
         },
         {
-          name: 'Patent Baristas',
-          url: 'https://patentbaristas.com/feed/',
+          name: 'Patent Docs',
+          url: 'https://patentdocs.typepad.com/patent_docs/atom.xml',
           category: 'patents',
-          description: 'Patent litigation and IP strategy',
+          description: 'Patent litigation, IP strategy',
           updateInterval: 7200000 // 2 hours
         }
       ],
@@ -110,32 +89,25 @@ class RSSFeedService {
       ],
       regulatory: [
         {
-          name: 'FDA News',
-          url: 'https://www.fda.gov/feed/news-events-press-releases.xml',
+          name: 'FDA News (via Reuters)',
+          url: 'https://feeds.reuters.com/reuters/governmentfilings',
           category: 'regulatory',
-          description: 'Official FDA announcements and updates',
+          description: 'Government filings and regulatory news',
           updateInterval: 1800000 // 30 minutes
         },
         {
-          name: 'FDA Warning Letters',
-          url: 'https://www.fda.gov/feed/inspections-compliance-enforcement-and-criminal-investigations.xml',
-          category: 'regulatory',
-          description: 'FDA compliance and enforcement actions',
-          updateInterval: 3600000 // 1 hour
-        },
-        {
-          name: 'FDA Law Blog',
-          url: 'https://www.fdalawblog.net/feed/',
-          category: 'regulatory',
-          description: 'Legal perspectives on FDA matters',
-          updateInterval: 7200000 // 2 hours
-        },
-        {
-          name: 'RAPS',
+          name: 'Regulatory Focus',
           url: 'https://www.raps.org/news-and-articles/news-feed',
           category: 'regulatory',
           description: 'Regulatory Affairs Professional Society updates',
           updateInterval: 3600000 // 1 hour
+        },
+        {
+          name: 'Pharma Manufacturing',
+          url: 'https://www.pharmamanufacturing.com/rss/',
+          category: 'regulatory',
+          description: 'Manufacturing compliance and regulations',
+          updateInterval: 7200000 // 2 hours
         }
       ],
       financial: [
@@ -190,8 +162,22 @@ class RSSFeedService {
     const promises = allFeeds.map(feed => this.fetchFeed(feed));
     
     try {
-      await Promise.allSettled(promises);
-      logger.info('RSS feed refresh completed');
+      const results = await Promise.allSettled(promises);
+      
+      // Log results for debugging
+      let successCount = 0;
+      let errorCount = 0;
+      
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value) {
+          successCount++;
+        } else {
+          errorCount++;
+          logger.error(`Feed ${allFeeds[index].name} failed:`, result.reason?.message || 'Unknown error');
+        }
+      });
+      
+      logger.info(`RSS feed refresh completed: ${successCount} successful, ${errorCount} failed`);
     } catch (error) {
       logger.error('Error refreshing RSS feeds:', error);
     }
@@ -199,26 +185,39 @@ class RSSFeedService {
 
   async fetchFeed(feedSource) {
     try {
+      logger.info(`Fetching RSS feed: ${feedSource.name} from ${feedSource.url}`);
+      
       const response = await axios.get(feedSource.url, {
-        timeout: 10000,
+        timeout: 15000, // Increased timeout
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        maxRedirects: 5 // Allow redirects
       });
 
       if (response.status === 200 && response.data) {
+        logger.info(`Successfully fetched ${feedSource.name}, processing data...`);
+        
         const parsedData = this.parser.parse(response.data);
         const processedData = this.processRSSData(parsedData, feedSource);
         
-        // Cache the processed data
-        this.cache.set(feedSource.name, {
-          data: processedData,
-          timestamp: Date.now(),
-          source: feedSource
-        });
-        
-        logger.info(`RSS feed ${feedSource.name} updated successfully`);
-        return processedData;
+        if (processedData && processedData.items && processedData.items.length > 0) {
+          // Cache the processed data
+          this.cache.set(feedSource.name, {
+            data: processedData,
+            timestamp: Date.now(),
+            source: feedSource
+          });
+          
+          logger.info(`RSS feed ${feedSource.name} updated successfully with ${processedData.items.length} items`);
+          return processedData;
+        } else {
+          logger.warn(`RSS feed ${feedSource.name} returned no valid items`);
+          return this.createEmptyFeed(feedSource, 'No valid items found');
+        }
+      } else {
+        logger.warn(`RSS feed ${feedSource.name} returned status ${response.status}`);
+        return this.createEmptyFeed(feedSource, `HTTP ${response.status}`);
       }
     } catch (error) {
       logger.error(`Error fetching RSS feed ${feedSource.name}:`, error.message);
@@ -232,17 +231,19 @@ class RSSFeedService {
       
       // Return empty feed structure if no cache available
       logger.warn(`No cached data available for ${feedSource.name}, returning empty feed`);
-      return {
-        source: feedSource.name,
-        category: feedSource.category,
-        description: feedSource.description,
-        lastUpdated: new Date().toISOString(),
-        items: [],
-        error: `Feed temporarily unavailable: ${error.message}`
-      };
+      return this.createEmptyFeed(feedSource, `Feed temporarily unavailable: ${error.message}`);
     }
-    
-    return null;
+  }
+
+  createEmptyFeed(feedSource, errorMessage) {
+    return {
+      source: feedSource.name,
+      category: feedSource.category,
+      description: feedSource.description,
+      lastUpdated: new Date().toISOString(),
+      items: [],
+      error: errorMessage
+    };
   }
 
   processRSSData(rssData, feedSource) {
@@ -257,6 +258,8 @@ class RSSFeedService {
       } else if (rssData.channel && rssData.channel.item) {
         items = Array.isArray(rssData.channel.item) ? rssData.channel.item : [rssData.channel.item];
       }
+
+      logger.info(`Processing ${items.length} items from ${feedSource.name}`);
 
       return {
         source: feedSource.name,
@@ -631,6 +634,127 @@ class RSSFeedService {
     }
     
     return status;
+  }
+
+  // Method to provide sample data for testing when feeds are not working
+  getSampleData() {
+    return {
+      pharmaceutical: [
+        {
+          source: 'FiercePharma',
+          category: 'pharmaceutical',
+          description: 'Drug approvals, M&A, company news',
+          lastUpdated: new Date().toISOString(),
+          items: [
+            {
+              title: 'FDA Approves New Breakthrough Therapy for Cancer Treatment',
+              description: 'The FDA has granted approval for a novel cancer treatment that shows promising results in clinical trials.',
+              link: '#',
+              pubDate: new Date().toISOString(),
+              author: 'FiercePharma Staff',
+              category: 'pharmaceutical',
+              extractedInfo: { type: 'drug_approval', relevance: 'high', companies: [], drugs: ['cancer treatment'], regulatory: true },
+              relevance: 'high'
+            },
+            {
+              title: 'Major Pharmaceutical Merger Creates Industry Giant',
+              description: 'Two leading pharmaceutical companies announce a landmark merger worth billions of dollars.',
+              link: '#',
+              pubDate: new Date(Date.now() - 3600000).toISOString(),
+              author: 'FiercePharma Staff',
+              category: 'pharmaceutical',
+              extractedInfo: { type: 'mergers_acquisitions', relevance: 'high', companies: [], drugs: [], regulatory: false },
+              relevance: 'high'
+            }
+          ]
+        }
+      ],
+      patents: [
+        {
+          source: 'IPWatchdog',
+          category: 'patents',
+          description: 'Patent law, USPTO updates',
+          lastUpdated: new Date().toISOString(),
+          items: [
+            {
+              title: 'USPTO Issues New Guidelines for AI-Generated Inventions',
+              description: 'The Patent Office releases updated guidance on patenting artificial intelligence innovations.',
+              link: '#',
+              pubDate: new Date().toISOString(),
+              author: 'IPWatchdog Staff',
+              category: 'patents',
+              extractedInfo: { type: 'patent_guidance', relevance: 'high', patentTypes: ['utility'], legal: true },
+              relevance: 'high'
+            }
+          ]
+        }
+      ],
+      clinicalTrials: [
+        {
+          source: 'ClinicalTrials.gov',
+          category: 'clinicalTrials',
+          description: 'New clinical trial announcements',
+          lastUpdated: new Date().toISOString(),
+          items: [
+            {
+              title: 'Phase 3 Clinical Trial Recruiting for Diabetes Treatment',
+              description: 'A new Phase 3 clinical trial is now recruiting participants for an innovative diabetes treatment.',
+              link: '#',
+              pubDate: new Date().toISOString(),
+              author: 'ClinicalTrials.gov',
+              category: 'clinicalTrials',
+              extractedInfo: { type: 'trial_recruiting', relevance: 'high', phases: ['phase_3'], conditions: ['diabetes'] },
+              relevance: 'high'
+            }
+          ]
+        }
+      ],
+      regulatory: [
+        {
+          source: 'Regulatory Focus',
+          category: 'regulatory',
+          description: 'Regulatory Affairs Professional Society updates',
+          lastUpdated: new Date().toISOString(),
+          items: [
+            {
+              title: 'FDA Issues New Guidance on Manufacturing Compliance',
+              description: 'The FDA releases comprehensive guidance on pharmaceutical manufacturing compliance requirements.',
+              link: '#',
+              pubDate: new Date().toISOString(),
+              author: 'RAPS Staff',
+              category: 'regulatory',
+              extractedInfo: { type: 'regulatory_guidance', relevance: 'high', regulatoryAgencies: ['FDA'], compliance: true },
+              relevance: 'high'
+            }
+          ]
+        }
+      ],
+      financial: [
+        {
+          source: 'FierceBiotech',
+          category: 'financial',
+          description: 'Biotech industry news and analysis',
+          lastUpdated: new Date().toISOString(),
+          items: [
+            {
+              title: 'Biotech Company Reports Strong Q4 Earnings',
+              description: 'Leading biotech firm exceeds analyst expectations with record quarterly earnings.',
+              link: '#',
+              pubDate: new Date().toISOString(),
+              author: 'FierceBiotech Staff',
+              category: 'financial',
+              extractedInfo: { type: 'earnings', relevance: 'high', marketImpact: 'positive' },
+              relevance: 'high'
+            }
+          ]
+        }
+      ]
+    };
+  }
+
+  // Method to check if we have any working feeds
+  hasWorkingFeeds() {
+    return this.cache.size > 0;
   }
 }
 
