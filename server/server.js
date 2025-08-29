@@ -30,6 +30,9 @@ import analyticsRoutes from './routes/analytics.js'
 import userRoutes from './routes/user.js'
 import subscriptionRoutes from './routes/subscriptions.js'
 import knowledgeGraphRoutes from './routes/knowledge-graph.js'
+import patentRoutes from './routes/patents.js'
+import competitiveIntelligenceRoutes from './routes/competitive-intelligence.js'
+import investmentResearchRoutes from './routes/investment-research.js'
 
 const app = express()
 const server = createServer(app)
@@ -117,6 +120,9 @@ app.use('/api/analytics', authMiddleware, analyticsRoutes)
 app.use('/api/user', authMiddleware, userRoutes)
 app.use('/api/subscriptions', subscriptionRoutes) // Email subscription routes
 app.use('/api/knowledge-graph', knowledgeGraphRoutes) // Knowledge graph construction and querying
+app.use('/api/patents', patentRoutes) // Patent cliff monitoring and USPTO integration
+app.use('/api/competitive-intelligence', competitiveIntelligenceRoutes) // Competitive intelligence automation
+app.use('/api/investment-research', investmentResearchRoutes) // Investment research analytics engine
 
 // Serve frontend (single-URL deployment)
 const __filename = fileURLToPath(import.meta.url)
