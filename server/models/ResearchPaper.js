@@ -215,8 +215,7 @@ researchPaperSchema.index({ researchType: 1 })
 researchPaperSchema.index({ medicalFields: 1 })
 researchPaperSchema.index({ qualityScore: -1 })
 researchPaperSchema.index({ 'interactions.views': -1 })
-researchPaperSchema.index({ pubmedId: 1 })
-researchPaperSchema.index({ doi: 1 })
+// pubmedId and doi already have unique indexes via field definitions
 researchPaperSchema.index({ 'aiProcessing.embedding': 1 })
 
 // Virtual for primary author

@@ -148,7 +148,7 @@ const chatSessionSchema = new mongoose.Schema(
 
 // Indexes for performance
 chatSessionSchema.index({ userId: 1, createdAt: -1 })
-chatSessionSchema.index({ sessionId: 1 })
+// sessionId already indexed/unique in schema definition
 chatSessionSchema.index({ 'context.type': 1 })
 chatSessionSchema.index({ status: 1 })
 chatSessionSchema.index({ 'metrics.lastActivity': -1 })

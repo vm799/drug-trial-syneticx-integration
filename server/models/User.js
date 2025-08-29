@@ -133,8 +133,7 @@ const userSchema = new mongoose.Schema(
   },
 )
 
-// Indexes for performance
-userSchema.index({ email: 1 })
+// Indexes for performance (email already unique at field level)
 userSchema.index({ lastActivity: 1 })
 userSchema.index({ 'apiUsage.daily.date': 1 })
 userSchema.index({ organization: 1 })
