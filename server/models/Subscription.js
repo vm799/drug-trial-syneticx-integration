@@ -51,8 +51,7 @@ const subscriptionSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Indexes for performance
-subscriptionSchema.index({ email: 1 })
+// Indexes for performance (email already unique at field level)
 subscriptionSchema.index({ isActive: 1, frequency: 1 })
 subscriptionSchema.index({ researchAreas: 1 })
 subscriptionSchema.index({ lastSentAt: 1 })
