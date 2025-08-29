@@ -11,8 +11,8 @@
                 <span class="text-white font-bold text-lg">Φ</span>
               </div>
               <div>
-                <h1 class="text-xl font-bold text-gray-900">Pharmaceutical Intelligence Platform</h1>
-                <p class="text-xs text-gray-500 font-medium">Enterprise Analytics & Decision Support</p>
+                <h1 class="text-xl font-bold text-gray-900">Competitive Medical Intelligence AI</h1>
+                <p class="text-xs text-gray-500 font-medium">Enterprise-grade AI-powered medical research platform with advanced multi-agent orchestration</p>
               </div>
             </div>
           </div>
@@ -55,7 +55,7 @@
             :class="enterpriseTabClass('competitive')" 
             class="px-8 py-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all duration-200 hover:bg-gray-50"
           >
-            Competitive Intelligence
+            Competitive Intelligence AI
           </button>
           <button 
             @click="activeTab = 'investment'" 
@@ -316,7 +316,7 @@
         <!-- Competitive Intelligence Tab -->
         <div v-if="activeTab === 'competitive'" class="space-y-8">
           <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-8 text-white">
-            <h2 class="text-3xl font-bold mb-3">Competitive Intelligence</h2>
+            <h2 class="text-3xl font-bold mb-3">Competitive Intelligence AI</h2>
             <p class="text-purple-100 text-lg mb-4">
               Comprehensive competitor analysis with market positioning insights, threat assessment, and strategic opportunity identification 
               across the pharmaceutical landscape.
