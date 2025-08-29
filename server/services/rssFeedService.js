@@ -20,25 +20,25 @@ class RSSFeedService {
           updateInterval: 3600000 // 1 hour
         },
         {
-          name: 'PharmaTimes',
-          url: 'https://www.pharmatimes.com/rss/news.xml',
-          category: 'pharmaceutical',
-          description: 'Industry updates, regulatory news',
-          updateInterval: 7200000 // 2 hours
-        },
-        {
-          name: 'BioSpace',
-          url: 'https://www.biospace.com/news/rss/',
-          category: 'pharmaceutical',
-          description: 'Biotech developments, clinical trials',
-          updateInterval: 3600000 // 1 hour
-        },
-        {
           name: 'Endpoints News',
           url: 'https://endpts.com/feed/',
           category: 'pharmaceutical',
           description: 'Drug development, FDA updates',
           updateInterval: 1800000 // 30 minutes
+        },
+        {
+          name: 'FierceBiotech',
+          url: 'https://www.fiercebiotech.com/rss/xml',
+          category: 'pharmaceutical',
+          description: 'Biotech developments, clinical trials',
+          updateInterval: 3600000 // 1 hour
+        },
+        {
+          name: 'BioPharma Dive',
+          url: 'https://www.biopharmadive.com/feeds/news/',
+          category: 'pharmaceutical',
+          description: 'Industry insights and analysis',
+          updateInterval: 3600000 // 1 hour
         }
       ],
       patents: [
@@ -89,25 +89,25 @@ class RSSFeedService {
       ],
       financial: [
         {
-          name: 'Seeking Alpha Pharma',
-          url: 'https://seekingalpha.com/feed/healthcare',
-          category: 'financial',
-          description: 'Pharma stock analysis',
-          updateInterval: 1800000 // 30 minutes
-        },
-        {
-          name: 'MarketWatch Healthcare',
-          url: 'https://feeds.marketwatch.com/marketwatch/healthcare/',
-          category: 'financial',
-          description: 'Healthcare market updates',
-          updateInterval: 3600000 // 1 hour
-        },
-        {
           name: 'Reuters Health',
           url: 'https://feeds.reuters.com/reuters/healthNews',
           category: 'financial',
           description: 'Industry financial news',
           updateInterval: 1800000 // 30 minutes
+        },
+        {
+          name: 'FierceBiotech',
+          url: 'https://www.fiercebiotech.com/rss/xml',
+          category: 'financial',
+          description: 'Biotech industry news and analysis',
+          updateInterval: 3600000 // 1 hour
+        },
+        {
+          name: 'BioPharma Dive',
+          url: 'https://www.biopharmadive.com/feeds/news/',
+          category: 'financial',
+          description: 'Pharmaceutical industry insights',
+          updateInterval: 3600000 // 1 hour
         }
       ]
     };
@@ -175,8 +175,20 @@ class RSSFeedService {
       // Return cached data if available
       const cached = this.cache.get(feedSource.name);
       if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+        logger.info(`Using cached data for ${feedSource.name}`);
         return cached.data;
       }
+      
+      // Return empty feed structure if no cache available
+      logger.warn(`No cached data available for ${feedSource.name}, returning empty feed`);
+      return {
+        source: feedSource.name,
+        category: feedSource.category,
+        description: feedSource.description,
+        lastUpdated: new Date().toISOString(),
+        items: [],
+        error: `Feed temporarily unavailable: ${error.message}`
+      };
     }
     
     return null;

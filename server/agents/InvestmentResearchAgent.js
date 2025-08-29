@@ -209,10 +209,19 @@ class InvestmentResearchAgent extends EventEmitter {
       }
 
       // Get company data
-      const patents = await Patent.findByCompany(companyName)
-      const competitorInfo = await CompetitiveIntelligence.findOne({
-        'companyInfo.name': new RegExp(companyName, 'i')
-      })
+      let patents = []
+      let competitorInfo = null
+      
+      try {
+        patents = await Patent.findByCompany(companyName)
+        competitorInfo = await CompetitiveIntelligence.findOne({
+          'companyInfo.name': new RegExp(companyName, 'i')
+        })
+      } catch (dbError) {
+        logger.warn(`Database access failed in risk calculation, using demo data: ${dbError.message}`)
+        patents = this.getDemoPatents(companyName)
+        competitorInfo = this.getDemoCompetitorInfo(companyName)
+      }
 
       // Calculate risk scores by category
       riskScore.riskCategories = {
@@ -602,9 +611,20 @@ class InvestmentResearchAgent extends EventEmitter {
   }
 
   async mapCompetitiveLandscape(therapeuticArea) {
-    const competitors = await CompetitiveIntelligence.find({
-      therapeuticFocus: therapeuticArea
-    }).limit(10)
+    let competitors = []
+    
+    try {
+      competitors = await CompetitiveIntelligence.find({
+        therapeuticFocus: therapeuticArea
+      }).limit(10)
+    } catch (dbError) {
+      logger.warn(`Database access failed in competitive landscape mapping, using demo data: ${dbError.message}`)
+      competitors = [
+        { companyInfo: { name: 'Demo Pharma Co' } },
+        { companyInfo: { name: 'Demo Biotech Inc' } },
+        { companyInfo: { name: 'Demo Therapeutics' } }
+      ]
+    }
 
     return {
       totalCompetitors: competitors.length,
@@ -615,10 +635,25 @@ class InvestmentResearchAgent extends EventEmitter {
   }
 
   async identifyPatentOpportunities(therapeuticArea) {
-    const patents = await Patent.find({
-      'drugInfo.therapeuticArea': therapeuticArea,
-      'cliffAnalysis.yearsToExpiry': { $lte: 5 }
-    })
+    let patents = []
+    
+    try {
+      patents = await Patent.find({
+        'drugInfo.therapeuticArea': therapeuticArea,
+        'cliffAnalysis.yearsToExpiry': { $lte: 5 }
+      })
+    } catch (dbError) {
+      logger.warn(`Database access failed in patent opportunities, using demo data: ${dbError.message}`)
+      patents = [
+        {
+          patentNumber: 'US12345678',
+          drugInfo: { drugName: 'Demo Drug A', therapeuticArea: therapeuticArea },
+          assignee: { name: 'Demo Company' },
+          expiryDate: new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000),
+          marketImpact: { estimatedRevenue: 500000000 }
+        }
+      ]
+    }
 
     return patents.map(patent => ({
       patentNumber: patent.patentNumber,
@@ -873,7 +908,21 @@ class InvestmentResearchAgent extends EventEmitter {
         expiryDate: new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000), // 2 years
         revenueContribution: 2500000000, // $2.5B
         riskLevel: 'critical',
-        therapeuticArea: 'Oncology'
+        therapeuticArea: 'Oncology',
+        // Add required fields for the analysis methods
+        drugInfo: {
+          drugName: 'Core Drug A',
+          therapeuticArea: 'Oncology'
+        },
+        cliffAnalysis: {
+          yearsToExpiry: 2,
+          cliffRisk: 'critical',
+          genericThreat: { level: 'high' }
+        },
+        marketImpact: {
+          estimatedRevenue: 2500000000
+        },
+        assignee: { name: companyName }
       },
       {
         patentNumber: 'US87654321',
@@ -882,7 +931,21 @@ class InvestmentResearchAgent extends EventEmitter {
         expiryDate: new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000), // 5 years
         revenueContribution: 1500000000, // $1.5B
         riskLevel: 'high',
-        therapeuticArea: 'Cardiovascular'
+        therapeuticArea: 'Cardiovascular',
+        // Add required fields for the analysis methods
+        drugInfo: {
+          drugName: 'Secondary Drug B',
+          therapeuticArea: 'Cardiovascular'
+        },
+        cliffAnalysis: {
+          yearsToExpiry: 5,
+          cliffRisk: 'high',
+          genericThreat: { level: 'medium' }
+        },
+        marketImpact: {
+          estimatedRevenue: 1500000000
+        },
+        assignee: { name: companyName }
       },
       {
         patentNumber: 'US11223344',
@@ -891,7 +954,21 @@ class InvestmentResearchAgent extends EventEmitter {
         expiryDate: new Date(Date.now() + 15 * 365 * 24 * 60 * 60 * 1000), // 15 years
         revenueContribution: 500000000, // $500M
         riskLevel: 'low',
-        therapeuticArea: 'Neurology'
+        therapeuticArea: 'Neurology',
+        // Add required fields for the analysis methods
+        drugInfo: {
+          drugName: 'Pipeline Drug C',
+          therapeuticArea: 'Neurology'
+        },
+        cliffAnalysis: {
+          yearsToExpiry: 15,
+          cliffRisk: 'low',
+          genericThreat: { level: 'low' }
+        },
+        marketImpact: {
+          estimatedRevenue: 500000000
+        },
+        assignee: { name: companyName }
       }
     ]
   }
