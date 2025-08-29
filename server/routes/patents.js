@@ -7,7 +7,7 @@ import CompetitiveIntelligence from '../models/CompetitiveIntelligence.js'
 import USPTOApiService from '../services/usptoApiService.js'
 import PatentMonitoringAgent from '../agents/PatentMonitoringAgent.js'
 import getOpenAIService from '../services/openaiService.js'
-import { auth, premiumAuth } from '../middleware/auth.js'
+import auth, { premiumAuth } from '../middleware/auth.js'
 import logger from '../utils/logger.js'
 
 const router = express.Router()

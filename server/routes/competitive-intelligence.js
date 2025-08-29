@@ -5,7 +5,7 @@ import { body, query, param, validationResult } from 'express-validator'
 import CompetitiveIntelligence from '../models/CompetitiveIntelligence.js'
 import CompetitiveIntelligenceAgent from '../agents/CompetitiveIntelligenceAgent.js'
 import getOpenAIService from '../services/openaiService.js'
-import { auth, premiumAuth } from '../middleware/auth.js'
+import auth, { premiumAuth } from '../middleware/auth.js'
 import logger from '../utils/logger.js'
 
 const router = express.Router()

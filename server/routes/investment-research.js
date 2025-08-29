@@ -4,7 +4,7 @@ import express from 'express'
 import { body, query, param, validationResult } from 'express-validator'
 import InvestmentResearchAgent from '../agents/InvestmentResearchAgent.js'
 import getOpenAIService from '../services/openaiService.js'
-import { auth, premiumAuth } from '../middleware/auth.js'
+import auth, { premiumAuth } from '../middleware/auth.js'
 import logger from '../utils/logger.js'
 
 const router = express.Router()
