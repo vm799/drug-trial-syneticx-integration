@@ -1,6 +1,6 @@
 <template>
 	<div class="space-y-4">
-		<div class="flex flex-wrap items-start gap-3">
+		<div class="sticky top-0 z-10 bg-blue-50/60 backdrop-blur supports-[backdrop-filter]:bg-blue-50/40 border rounded p-3 flex flex-wrap items-start gap-3">
 			<div class="flex-1">
 				<h3 class="text-xl font-semibold text-gray-900">USPTO Integration</h3>
 				<p class="text-sm text-gray-600">Search patents and applications directly from the USPTO data.</p>
@@ -16,12 +16,14 @@
 					<option value="applications">Applications</option>
 				</select>
 			</div>
-			<button @click="search" :disabled="loading || !query" class="ml-auto px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Searching...' : 'Search' }}</button>
+			<button @click="exportCSV" class="px-4 py-2 bg-green-600 text-white rounded text-sm" :disabled="results.length===0">Export CSV</button>
+			<button @click="search" :disabled="loading || !query" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Searching...' : 'Search' }}</button>
 		</div>
 
 		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm">{{ error }}</div>
 
 		<div class="bg-white rounded shadow overflow-hidden">
+			<div v-if="loading" class="p-4 animate-pulse text-sm text-gray-600">Searching USPTO…</div>
 			<table class="min-w-full text-sm">
 				<thead class="bg-gray-50">
 					<tr>
@@ -48,6 +50,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import api from '../services/api'
+import { exportToCSV } from '../utils/export'
 
 const query = ref('')
 const type = ref<'patents' | 'applications'>('patents')
@@ -76,6 +79,16 @@ async function search() {
 	} finally {
 		loading.value = false
 	}
+}
+
+function exportCSV() {
+	const rows = results.value.map(r => ({
+		Number: r.patentNumber || r.applicationNumber,
+		Title: r.title,
+		Assignee: r.assignee?.name || r.applicant?.name,
+		Date: formatDate(r.date || r.filingDate || r.issueDate),
+	}))
+	exportToCSV('uspto-results.csv', rows)
 }
 </script>
 

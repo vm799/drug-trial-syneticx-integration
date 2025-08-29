@@ -24,11 +24,11 @@
     <nav class="bg-white border-t border-b border-gray-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex space-x-6 overflow-x-auto">
-          <button @click="activeTab = 'home'" :class="tabClass('home')" class="py-3 text-sm font-medium whitespace-nowrap">Home</button>
-          <button @click="activeTab = 'patent'" :class="tabClass('patent')" class="py-3 text-sm font-medium whitespace-nowrap">Patent Cliff</button>
-          <button @click="activeTab = 'competitive'" :class="tabClass('competitive')" class="py-3 text-sm font-medium whitespace-nowrap">Competitive Intel</button>
-          <button @click="activeTab = 'investment'" :class="tabClass('investment')" class="py-3 text-sm font-medium whitespace-nowrap">Investment Research</button>
-          <button @click="activeTab = 'uspto'" :class="tabClass('uspto')" class="py-3 text-sm font-medium whitespace-nowrap">USPTO</button>
+          <button @click="activeTab = 'home'" :class="tabClass('home')" class="py-3 text-sm font-medium whitespace-nowrap">🏠 Home</button>
+          <button @click="activeTab = 'patent'" :class="tabClass('patent')" class="py-3 text-sm font-medium whitespace-nowrap">🧱 Patent Cliff</button>
+          <button @click="activeTab = 'competitive'" :class="tabClass('competitive')" class="py-3 text-sm font-medium whitespace-nowrap">📊 Competitive Intel</button>
+          <button @click="activeTab = 'investment'" :class="tabClass('investment')" class="py-3 text-sm font-medium whitespace-nowrap">💹 Investment Research</button>
+          <button @click="activeTab = 'uspto'" :class="tabClass('uspto')" class="py-3 text-sm font-medium whitespace-nowrap">📄 USPTO</button>
         </div>
       </div>
     </nav>

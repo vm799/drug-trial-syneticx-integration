@@ -1,6 +1,6 @@
 <template>
 	<div class="space-y-4">
-		<div class="flex flex-wrap items-start gap-3">
+		<div class="sticky top-0 z-10 bg-indigo-50/60 backdrop-blur supports-[backdrop-filter]:bg-indigo-50/40 border rounded p-3 flex flex-wrap items-start gap-3">
 			<div class="flex-1">
 				<h3 class="text-xl font-semibold text-gray-900">Competitive Intelligence</h3>
 				<p class="text-sm text-gray-600">Monitor competitors, threat levels, market cap, and pipelines.</p>
@@ -24,7 +24,8 @@
 					<option value="lastUpdated">Last Updated</option>
 				</select>
 			</div>
-			<button @click="loadData" :disabled="loading" class="ml-auto px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Loading...' : 'Refresh' }}</button>
+			<button @click="exportCSV" class="px-4 py-2 bg-green-600 text-white rounded text-sm">Export CSV</button>
+			<button @click="loadData" :disabled="loading" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Loading...' : 'Refresh' }}</button>
 		</div>
 
 		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm">{{ error }}</div>
@@ -49,6 +50,7 @@
 		</div>
 
 		<div class="bg-white rounded shadow overflow-hidden">
+			<div v-if="loading" class="p-4 animate-pulse text-sm text-gray-600">Loading competitors…</div>
 			<table class="min-w-full text-sm">
 				<thead class="bg-gray-50">
 					<tr>
@@ -79,6 +81,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
+import { exportToCSV } from '../utils/export'
 
 const loading = ref(false)
 const error = ref('')
@@ -128,6 +131,19 @@ async function loadData() {
 	} finally {
 		loading.value = false
 	}
+}
+
+function exportCSV() {
+	const rows = competitors.value.map(c => ({
+		Company: c.companyInfo?.name,
+		Threat: c.overallThreat,
+		ThreatScore: c.threatScore,
+		MarketCap: c.financialMetrics?.marketCap || 0,
+		PipelineAssets: c.pipelineAnalysis?.totalAssets || 0,
+		Patents: c.patentPortfolio?.totalPatents || 0,
+		LastAnalyzed: formatDate(c.lastAnalyzed),
+	}))
+	exportToCSV('competitive-intelligence.csv', rows)
 }
 
 onMounted(loadData)

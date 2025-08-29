@@ -1,6 +1,6 @@
 <template>
 	<div class="space-y-4">
-		<div class="flex flex-wrap items-start gap-3">
+		<div class="sticky top-0 z-10 bg-gray-50/80 backdrop-blur supports-[backdrop-filter]:bg-gray-50/60 border rounded p-3 flex flex-wrap items-start gap-3">
 			<div class="flex-1">
 				<h3 class="text-xl font-semibold text-gray-900">Patent Cliff Monitoring</h3>
 				<p class="text-sm text-gray-600">Track expiring patents, risk levels, and revenue at risk.</p>
@@ -32,7 +32,8 @@
 					<option value="revenue">Revenue</option>
 				</select>
 			</div>
-			<button @click="loadData" :disabled="loading" class="ml-auto px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Loading...' : 'Refresh' }}</button>
+			<button @click="exportCSV" class="px-4 py-2 bg-green-600 text-white rounded text-sm">Export CSV</button>
+			<button @click="loadData" :disabled="loading" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Loading...' : 'Refresh' }}</button>
 		</div>
 
 		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm">{{ error }}</div>
@@ -57,6 +58,7 @@
 		</div>
 
 		<div class="bg-white rounded shadow overflow-hidden">
+			<div v-if="loading" class="p-4 animate-pulse text-sm text-gray-600">Loading patent cliffs…</div>
 			<table class="min-w-full text-sm">
 				<thead class="bg-gray-50">
 					<tr>
@@ -87,6 +89,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
+import { exportToCSV } from '../utils/export'
 
 const loading = ref(false)
 const error = ref('')
@@ -141,6 +144,19 @@ async function loadData() {
 	} finally {
 		loading.value = false
 	}
+}
+
+function exportCSV() {
+	const rows = patents.value.map(p => ({
+		Patent: p.patentNumber,
+		Drug: p.drugName,
+		Company: p.company,
+		Expiry: formatDate(p.expiryDate),
+		DaysToExpiry: p.daysToExpiry,
+		Risk: p.riskLevel,
+		EstimatedRevenue: p.estimatedRevenue,
+	}))
+	exportToCSV('patent-cliff-monitor.csv', rows)
 }
 
 onMounted(loadData)
