@@ -7,11 +7,15 @@
 			</div>
 			<div class="flex-1 min-w-[240px]">
 				<label class="block text-xs font-medium text-gray-600 mb-1">Search USPTO</label>
-				<input v-model="query" placeholder="e.g., CRISPR gene editing" class="w-full border rounded px-3 py-2 text-sm" />
+				<input 
+					v-model="query" 
+					placeholder="e.g., CRISPR gene editing" 
+					class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+				/>
 			</div>
 			<div>
 				<label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-				<select v-model="type" class="border rounded px-3 py-2 text-sm">
+				<select v-model="type" class="border border-gray-300 rounded px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
 					<option value="patents">Patents</option>
 					<option value="applications">Applications</option>
 				</select>
