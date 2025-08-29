@@ -107,6 +107,16 @@
             </span>
           </button>
           <button 
+            @click="activeTab = 'news'" 
+            :class="enhancedTabClass('news')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          >
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">📰</span>
+              <span>Industry News</span>
+            </span>
+          </button>
+          <button 
             @click="activeTab = 'data'" 
             :class="enhancedTabClass('data')" 
             class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
@@ -407,7 +417,6 @@
 
         <!-- Patent Cliff Monitor Tab -->
         <div v-if="activeTab === 'patent'" class="space-y-8">
-          <!-- Hero Section -->
           <div class="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white">
             <h2 class="text-3xl font-bold mb-3">Patent Cliff Monitor</h2>
             <p class="text-red-100 text-lg mb-4">
@@ -513,23 +522,44 @@
 
         <!-- Research Insights Tab -->
         <div v-if="activeTab === 'research'" class="space-y-8">
-          <div class="bg-gradient-to-r from-indigo-700 to-purple-900 rounded-xl p-8 text-white">
-            <h2 class="text-3xl font-bold mb-3">Research Insights Engine</h2>
-            <p class="text-indigo-100 text-lg mb-4">
-              Comprehensive research analysis combining clinical trials, patents, and financial data. 
-              AI-powered insights for strategic decision making and market opportunity assessment.
+          <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-8 text-white">
+            <h2 class="text-3xl font-bold mb-3">🔬 Research Insights</h2>
+            <p class="text-purple-100 text-lg mb-4">
+              Comprehensive research insights integrating clinical trials, patents, and financial data. 
+              Get a holistic view of therapeutic areas and development pipelines.
             </p>
-            <div class="bg-indigo-800/30 rounded-lg p-4 mt-6">
-              <h4 class="font-semibold mb-2">Analysis Features:</h4>
-              <ul class="text-indigo-100 text-sm space-y-1">
-                <li>• Multi-source data integration (ClinicalTrials.gov, USPTO, Financial APIs)</li>
-                <li>• Market opportunity scoring and competitive landscape analysis</li>
-                <li>• Strategic recommendations with actionable insights</li>
-                <li>• Export capabilities for further analysis</li>
+            <div class="bg-purple-800/30 rounded-lg p-4 mt-6">
+              <h4 class="font-semibold mb-2">Insight Capabilities:</h4>
+              <ul class="text-purple-100 text-sm space-y-1">
+                <li>• Multi-source data integration and analysis</li>
+                <li>• Therapeutic area focus and development stage assessment</li>
+                <li>• Patent risk analysis and competitive landscape</li>
+                <li>• Strategic recommendations and investment profiles</li>
               </ul>
             </div>
           </div>
           <ResearchInsights />
+        </div>
+
+        <!-- RSS News Feed Tab -->
+        <div v-if="activeTab === 'news'" class="space-y-8">
+          <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl p-8 text-white">
+            <h2 class="text-3xl font-bold mb-3">📰 Industry News & Updates</h2>
+            <p class="text-indigo-100 text-lg mb-4">
+              Real-time pharmaceutical, patent, and clinical trial news from leading industry sources. 
+              Stay informed with the latest developments in drug development, regulatory updates, and market intelligence.
+            </p>
+            <div class="bg-indigo-800/30 rounded-lg p-4 mt-6">
+              <h4 class="font-semibold mb-2">News Sources:</h4>
+              <ul class="text-indigo-100 text-sm space-y-1">
+                <li>• FiercePharma, PharmaTimes, BioSpace - Industry updates</li>
+                <li>• IPWatchdog, Managing IP - Patent & IP news</li>
+                <li>• ClinicalTrials.gov, Nature Medicine - Research breakthroughs</li>
+                <li>• Seeking Alpha, MarketWatch - Financial & market analysis</li>
+              </ul>
+            </div>
+          </div>
+          <RSSNewsFeed />
         </div>
 
         <!-- Data Management Tab -->
@@ -603,12 +633,13 @@ import InvestmentResearch from './components/InvestmentResearch.vue'
 import USPTOIntegration from './components/USPTOIntegration.vue'
 import ExecutiveReport from './components/ExecutiveReport.vue'
 import ResearchInsights from './components/ResearchInsights.vue'
+import RSSNewsFeed from './components/RSSNewsFeed.vue'
 import DataManagement from './components/DataManagement.vue'
 import apiService from './services/api'
 import { formatCurrency, formatLargeNumber } from './utils/formatters'
 
 // Application State
-const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto' | 'executive' | 'research' | 'data'>('dashboard')
+const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto' | 'executive' | 'research' | 'news' | 'data'>('dashboard')
 const isLoading = ref(false)
 const systemStatus = ref('All Systems Operational')
 const chatMessage = ref('')
@@ -658,7 +689,9 @@ const enhancedTabClass = (tab: string) => {
       competitive: 'bg-gradient-to-br from-purple-500 to-purple-600 text-white border-purple-600 shadow-lg shadow-purple-500/30',
       investment: 'bg-gradient-to-br from-orange-500 to-orange-600 text-white border-orange-600 shadow-lg shadow-orange-500/30',
       uspto: 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/30',
-      executive: 'bg-gradient-to-br from-gray-800 to-gray-900 text-white border-gray-800 shadow-lg shadow-gray-800/30'
+      executive: 'bg-gradient-to-br from-gray-800 to-gray-900 text-white border-gray-800 shadow-lg shadow-gray-800/30',
+      research: 'bg-gradient-to-br from-purple-500 to-purple-600 text-white border-purple-600 shadow-lg shadow-purple-500/30',
+      news: 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/30'
     }
     return gradients[tab] || gradients.dashboard
   }
@@ -827,7 +860,7 @@ const runKnowledgeGraphDemo = async () => {
   try {
     console.log('🧠 Starting Multi-Agent Knowledge Graph Demo...')
     
-    const response = await api.request('/knowledge-graph/demo', {
+    const response = await apiService.request('/knowledge-graph/demo', {
       method: 'POST',
       body: JSON.stringify({
         demo: true,

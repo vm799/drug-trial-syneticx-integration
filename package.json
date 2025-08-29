@@ -35,6 +35,7 @@
     "express": "^5.1.0",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.0.1",
+    "fast-xml-parser": "^5.2.5",
     "helmet": "^8.1.0",
     "ioredis": "^5.7.0",
     "langchain": "^0.3.31",
