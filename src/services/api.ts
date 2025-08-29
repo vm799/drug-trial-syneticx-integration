@@ -371,6 +371,50 @@ class ApiService {
     throw new Error(response.message || 'Failed to fetch analytics')
   }
 
+  // Patent intelligence
+  async getPatentCliffMonitor(params?: { timeframe?: number; riskLevel?: 'critical' | 'high' | 'medium' | 'low'; sortBy?: 'risk' | 'expiry' | 'revenue' }): Promise<any> {
+    const query = new URLSearchParams()
+    if (params?.timeframe !== undefined) query.append('timeframe', String(params.timeframe))
+    if (params?.riskLevel) query.append('riskLevel', params.riskLevel)
+    if (params?.sortBy) query.append('sortBy', params.sortBy)
+    const response = await this.request(`/patents/cliff-monitor?${query.toString()}`)
+    if (response.success && response.data) return response.data
+    throw new Error(response.message || 'Failed to fetch patent cliff monitor')
+  }
+
+  // Competitive intelligence
+  async getCompetitiveDashboard(params?: { threatLevel?: 'critical' | 'high' | 'medium' | 'low'; sortBy?: 'threat' | 'marketCap' | 'pipeline' | 'lastUpdated'; limit?: number }): Promise<any> {
+    const query = new URLSearchParams()
+    if (params?.threatLevel) query.append('threatLevel', params.threatLevel)
+    if (params?.sortBy) query.append('sortBy', params.sortBy)
+    if (params?.limit !== undefined) query.append('limit', String(params.limit))
+    const response = await this.request(`/competitive-intelligence/dashboard?${query.toString()}`)
+    if (response.success && response.data) return response.data
+    throw new Error(response.message || 'Failed to fetch competitive dashboard')
+  }
+
+  // Investment research
+  async analyzePatentCliffImpact(body: { companyName: string; analysisTimeframe?: number; discountRate?: number; includeScenarios?: boolean }): Promise<any> {
+    const response = await this.request('/investment-research/patent-cliff-impact', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+    if (response.success && response.data) return response.data
+    throw new Error(response.message || 'Failed to analyze patent cliff impact')
+  }
+
+  // USPTO search (via patents routes if exposed)
+  async searchUSPTO(params: { query: string; type?: 'patents' | 'applications'; page?: number; sortBy?: string }): Promise<any> {
+    const query = new URLSearchParams()
+    query.append('q', params.query)
+    if (params.type) query.append('type', params.type)
+    if (params.page !== undefined) query.append('page', String(params.page))
+    if (params.sortBy) query.append('sortBy', params.sortBy)
+    const response = await this.request(`/patents/uspto/search?${query.toString()}`)
+    if (response.success && response.data) return response.data
+    throw new Error(response.message || 'Failed to search USPTO')
+  }
+
   // Utility methods
   private setAuthData(token: string, sessionId: string): void {
     this.token = token
