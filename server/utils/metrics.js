@@ -1,5 +1,6 @@
 // Prometheus metrics configuration and setup
 import client from 'prom-client'
+import os from 'os'
 
 // Create a Registry to register metrics
 const register = new client.Registry()
@@ -9,7 +10,7 @@ register.setDefaultLabels({
   app: 'medresearch-ai',
   version: process.env.npm_package_version || '1.0.0',
   environment: process.env.NODE_ENV || 'development',
-  instance: process.env.HOSTNAME || require('os').hostname(),
+  instance: process.env.HOSTNAME || os.hostname(),
 })
 
 // Collect default metrics (CPU, memory, etc.)

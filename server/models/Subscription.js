@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import crypto from 'crypto'
 
 const subscriptionSchema = new mongoose.Schema({
   email: {
@@ -37,7 +38,7 @@ const subscriptionSchema = new mongoose.Schema({
   },
   unsubscribeToken: {
     type: String,
-    default: () => require('crypto').randomBytes(32).toString('hex')
+    default: () => crypto.randomBytes(32).toString('hex')
   },
   metadata: {
     source: {

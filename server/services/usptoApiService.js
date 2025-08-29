@@ -1,10 +1,10 @@
 // server/services/usptoApiService.js - USPTO Patent Database Integration Service
 
 import fetch from 'node-fetch'
+import axios from 'axios'
 import logger from '../utils/logger.js'
 import Patent from '../models/Patent.js'
 import { EventEmitter } from 'events'
-const axios = require('axios');
 
 class USPTOApiService extends EventEmitter {
   constructor() {
