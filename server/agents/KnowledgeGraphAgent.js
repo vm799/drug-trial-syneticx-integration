@@ -12,18 +12,18 @@ import EntityFactTypeProposalAgent from './EntityFactTypeProposalAgent.js';
  * Based on DeepLearning.AI multi-agent architecture
  */
 class KnowledgeGraphAgent {
-  constructor(openai, neo4jDriver = null) {
-    this.openai = openai;
+  constructor(openaiService, neo4jDriver = null) {
+    this.openaiService = openaiService;
     this.neo4jDriver = neo4jDriver;
     
     // Initialize sub-agents
-    this.structuredDataAgent = new StructuredDataAgent(openai);
-    this.unstructuredDataAgent = new UnstructuredDataAgent(openai);
-    this.graphRAGAgent = new GraphRAGAgent(openai, neo4jDriver);
-    this.userIntentAgent = new UserIntentAgent(openai);
-    this.fileSuggestionAgent = new FileSuggestionAgent(openai);
-    this.schemaProposalAgent = new SchemaProposalAgent(openai);
-    this.entityFactTypeProposalAgent = new EntityFactTypeProposalAgent(openai);
+    this.structuredDataAgent = new StructuredDataAgent(openaiService);
+    this.unstructuredDataAgent = new UnstructuredDataAgent(openaiService);
+    this.graphRAGAgent = new GraphRAGAgent(openaiService, neo4jDriver);
+    this.userIntentAgent = new UserIntentAgent(openaiService);
+    this.fileSuggestionAgent = new FileSuggestionAgent(openaiService);
+    this.schemaProposalAgent = new SchemaProposalAgent(openaiService);
+    this.entityFactTypeProposalAgent = new EntityFactTypeProposalAgent(openaiService);
     
     // Knowledge graph store (in-memory if no Neo4j)
     this.knowledgeGraph = {

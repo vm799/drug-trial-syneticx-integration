@@ -5,8 +5,8 @@
  * Handles querying and reasoning over the constructed knowledge graph
  */
 class GraphRAGAgent {
-  constructor(openai, neo4jDriver = null) {
-    this.openai = openai;
+  constructor(openaiService, neo4jDriver = null) {
+    this.openaiService = openaiService;
     this.neo4jDriver = neo4jDriver;
     this.queryCache = new Map();
   }
@@ -95,14 +95,14 @@ Format:
   "expectedAnswerType": "relationship_explanation"
 }`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.1,
-        max_tokens: 500
+        maxTokens: 500
       });
 
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(response.content);
 
     } catch (error) {
       console.error('Query analysis error:', error);
@@ -372,14 +372,14 @@ Instructions:
 
 Response:`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.2,
-        max_tokens: 1000
+        maxTokens: 1000
       });
 
-      const aiResponse = response.choices[0].message.content;
+      const aiResponse = response.content;
 
       // Add knowledge graph citations
       const responseWithCitations = this.addKnowledgeCitations(aiResponse, rankedResults);

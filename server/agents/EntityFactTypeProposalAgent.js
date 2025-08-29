@@ -5,8 +5,8 @@
  * Part of the multi-agent knowledge graph construction system
  */
 class EntityFactTypeProposalAgent {
-  constructor(openai) {
-    this.openai = openai;
+  constructor(openaiService) {
+    this.openaiService = openaiService;
     
     // Medical entity type hierarchies
     this.medicalHierarchies = {
@@ -260,14 +260,14 @@ Provide refinements in JSON:
   ]
 }`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.2,
-        max_tokens: 1200
+        maxTokens: 1200
       });
 
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(response.content);
 
     } catch (error) {
       console.error('AI type refinement error:', error);

@@ -5,8 +5,8 @@
  * Part of the multi-agent knowledge graph construction system
  */
 class UnstructuredDataAgent {
-  constructor(openai) {
-    this.openai = openai;
+  constructor(openaiService) {
+    this.openaiService = openaiService;
     this.supportedFormats = ['pdf', 'txt', 'md', 'html', 'docx', 'rtf'];
     
     // Medical NER patterns (simple regex-based patterns)
@@ -181,14 +181,14 @@ Return a JSON array of entities in this format:
 
 Focus on medical accuracy and avoid duplicates.`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.2,
-        max_tokens: 1500
+        maxTokens: 1500
       });
 
-      const aiEntities = JSON.parse(response.choices[0].message.content);
+      const aiEntities = JSON.parse(response.content);
       
       return aiEntities.map(entity => ({
         ...entity,
@@ -226,15 +226,15 @@ Extract any medical entities with their relationships to other entities in the s
   "relatedEntities": ["entity1", "entity2"]
 }]`;
 
-        const response = await this.openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: contextPrompt }],
+        const response = await this.openaiService.generateResponse([
+          { role: "user", content: contextPrompt }
+        ], {
           temperature: 0.1,
-          max_tokens: 500
+          maxTokens: 500
         });
 
         try {
-          const contextEntities = JSON.parse(response.choices[0].message.content);
+          const contextEntities = JSON.parse(response.content);
           entities.push(...contextEntities.map(entity => ({
             ...entity,
             sourceDocument: sourceDoc,
@@ -358,14 +358,14 @@ Return JSON array:
 
 Focus on medically accurate relationships with clear evidence.`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.2,
-        max_tokens: 1000
+        maxTokens: 1000
       });
 
-      const aiRelationships = JSON.parse(response.choices[0].message.content);
+      const aiRelationships = JSON.parse(response.content);
       
       return aiRelationships.map(rel => ({
         ...rel,

@@ -5,8 +5,8 @@
  * Part of the multi-agent knowledge graph construction system
  */
 class UserIntentAgent {
-  constructor(openai) {
-    this.openai = openai;
+  constructor(openaiService) {
+    this.openaiService = openaiService;
     this.intentTypes = [
       'knowledge_graph_construction',
       'document_analysis',
@@ -82,14 +82,14 @@ Respond in JSON format:
   "reasoning": "User wants to build knowledge graph from medical documents"
 }`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.1,
-        max_tokens: 600
+        maxTokens: 600
       });
 
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(response.content);
 
     } catch (error) {
       console.error('Intent analysis error:', error);

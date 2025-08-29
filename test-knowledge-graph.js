@@ -1,7 +1,7 @@
 // test-knowledge-graph.js - Test the multi-agent knowledge graph system
 
 import KnowledgeGraphAgent from './server/agents/KnowledgeGraphAgent.js';
-import { openai } from './server/services/openaiService.js';
+import getOpenAIService from './server/services/openaiService.js';
 
 async function testKnowledgeGraphSystem() {
   console.log('🧪 Testing Multi-Agent Knowledge Graph Construction System');
@@ -9,7 +9,8 @@ async function testKnowledgeGraphSystem() {
 
   try {
     // Initialize the Knowledge Graph Agent
-    const kgAgent = new KnowledgeGraphAgent(openai);
+    const openaiService = getOpenAIService();
+    const kgAgent = new KnowledgeGraphAgent(openaiService.client);
 
     // Sample medical documents (structured and unstructured)
     const sampleDocuments = [

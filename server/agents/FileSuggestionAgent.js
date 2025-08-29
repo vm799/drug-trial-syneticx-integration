@@ -5,8 +5,8 @@
  * Part of the multi-agent knowledge graph construction system
  */
 class FileSuggestionAgent {
-  constructor(openai) {
-    this.openai = openai;
+  constructor(openaiService) {
+    this.openaiService = openaiService;
     this.supportedFormats = [
       'pdf', 'txt', 'md', 'html', 'docx', 'rtf', // Unstructured
       'json', 'csv', 'xml', 'xlsx', 'tsv', 'yaml' // Structured
@@ -152,14 +152,14 @@ Analyze and return JSON:
   "confidence": 0.85
 }`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.1,
-        max_tokens: 400
+        maxTokens: 400
       });
 
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(response.content);
 
     } catch (error) {
       console.error('AI document analysis error:', error);
@@ -329,14 +329,14 @@ Generate specific recommendations:
   "riskMitigation": ["risk1_mitigation", "risk2_mitigation"]
 }`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.2,
-        max_tokens: 600
+        maxTokens: 600
       });
 
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(response.content);
 
     } catch (error) {
       console.error('Recommendation generation error:', error);

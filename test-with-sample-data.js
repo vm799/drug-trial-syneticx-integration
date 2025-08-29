@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import KnowledgeGraphAgent from './server/agents/KnowledgeGraphAgent.js';
-import { openai } from './server/services/openaiService.js';
+import getOpenAIService from './server/services/openaiService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -78,7 +78,8 @@ async function testKnowledgeGraphWithSampleData() {
     const documents = await loadSampleData();
     
     // Initialize Knowledge Graph Agent
-    const kgAgent = new KnowledgeGraphAgent(openai);
+    const openaiService = getOpenAIService();
+    const kgAgent = new KnowledgeGraphAgent(openaiService);
 
     // Define user query for comprehensive medical knowledge graph
     const userQuery = {

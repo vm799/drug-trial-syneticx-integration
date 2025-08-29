@@ -5,8 +5,8 @@
  * Part of the multi-agent knowledge graph construction system
  */
 class StructuredDataAgent {
-  constructor(openai) {
-    this.openai = openai;
+  constructor(openaiService) {
+    this.openaiService = openaiService;
     this.supportedFormats = ['json', 'csv', 'xml', 'xlsx', 'database', 'api'];
   }
 
@@ -240,14 +240,14 @@ Return a JSON array of additional or improved entities in this format:
 
 Focus on medical relevance and accuracy.`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.3,
-        max_tokens: 1500
+        maxTokens: 1500
       });
 
-      const aiEntities = JSON.parse(response.choices[0].message.content);
+      const aiEntities = JSON.parse(response.content);
       
       // Merge AI-enhanced entities with original entities
       const enhancedEntities = [...entities];
@@ -294,14 +294,14 @@ Return a JSON array of additional relationships in this format:
 
 Focus on medically meaningful relationships.`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.3,
-        max_tokens: 1000
+        maxTokens: 1000
       });
 
-      const aiRelationships = JSON.parse(response.choices[0].message.content);
+      const aiRelationships = JSON.parse(response.content);
       
       const enhancedRelationships = [...relationships];
       for (const aiRel of aiRelationships) {

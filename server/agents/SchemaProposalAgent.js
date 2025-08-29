@@ -5,8 +5,8 @@
  * Part of the multi-agent knowledge graph construction system
  */
 class SchemaProposalAgent {
-  constructor(openai) {
-    this.openai = openai;
+  constructor(openaiService) {
+    this.openaiService = openaiService;
     
     // Predefined medical schemas
     this.medicalSchemas = {
@@ -138,14 +138,14 @@ Return JSON:
 
 Focus on medical/healthcare domain relevance.`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.1,
-        max_tokens: 400
+        maxTokens: 400
       });
 
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(response.content);
 
     } catch (error) {
       console.error('Schema hint extraction error:', error);
@@ -214,14 +214,14 @@ Propose enhancements:
   "constraints": ["unique_drug_names", "valid_dosage_ranges"]
 }`;
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+      const response = await this.openaiService.generateResponse([
+        { role: "user", content: prompt }
+      ], {
         temperature: 0.2,
-        max_tokens: 800
+        maxTokens: 800
       });
 
-      return JSON.parse(response.choices[0].message.content);
+      return JSON.parse(response.content);
 
     } catch (error) {
       console.error('AI schema enhancement error:', error);
