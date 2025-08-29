@@ -4,27 +4,14 @@ import fetch from 'node-fetch'
 import logger from '../utils/logger.js'
 import Patent from '../models/Patent.js'
 import { EventEmitter } from 'events'
+const axios = require('axios');
 
 class USPTOApiService extends EventEmitter {
   constructor() {
     super()
-    // REAL USPTO API endpoints (no API key required)
-    this.baseURL = 'https://developer.uspto.gov/ptab-api'
-    this.patentSearchURL = 'https://search-api.uspto.gov/search/v1'
-    this.bulkDataURL = 'https://bulkdata.uspto.gov'
-    this.patentDetailsURL = 'https://patents.google.com/xhr/query'
-    
-    // Rate limiting for real API calls
-    this.requestQueue = []
-    this.isProcessing = false
-    this.requestsPerMinute = 60
-    this.requestInterval = 60000 / this.requestsPerMinute // 1 second per request
-    
-    // Cache for frequently accessed data
-    this.cache = new Map()
-    this.cacheTimeout = 300000 // 5 minutes
-
-    this.init()
+    this.rapidApiKey = process.env.RAPIDAPI_PATENT_KEY;
+    this.rapidApiHost = process.env.RAPIDAPI_PATENT_HOST || 'global-patent1.p.rapidapi.com';
+    this.baseUrl = 'https://global-patent1.p.rapidapi.com';
   }
 
   init() {
@@ -39,70 +26,138 @@ class USPTOApiService extends EventEmitter {
     }, this.cacheTimeout)
   }
 
-  /**
-   * Search patents by drug name and company - REAL USPTO API
-   */
-  async searchPatentsByDrug(drugName, companyName = null, options = {}) {
-    const cacheKey = `patents_${drugName}_${companyName || 'all'}`
-    
-    if (this.cache.has(cacheKey)) {
-      const cached = this.cache.get(cacheKey)
-      if (Date.now() - cached.timestamp < this.cacheTimeout) {
-        logger.debug(`Returning cached patent search for ${drugName}`)
-        return cached.data
+  async searchPatents(query, type = 'all') {
+    try {
+      // Try RapidAPI first for real data
+      if (this.rapidApiKey) {
+        const response = await axios.get(`${this.baseUrl}/patent/search`, {
+          params: { query },
+          headers: {
+            'x-rapidapi-host': this.rapidApiHost,
+            'x-rapidapi-key': this.rapidApiKey
+          }
+        });
+
+        if (response.data) {
+          return {
+            success: true,
+            data: this.transformRapidApiResponse(response.data),
+            metadata: {
+              dataSource: 'REAL_RAPIDAPI_PATENT',
+              timestamp: new Date().toISOString(),
+              source: 'RapidAPI Global Patent API',
+              query: query,
+              type: type
+            }
+          };
+        }
       }
+    } catch (error) {
+      console.log('RapidAPI Patent search failed, falling back to mock data:', error.message);
     }
 
+    // Fallback to mock data with clear labeling
+    return {
+      success: true,
+      data: this.getMockPatentData(query),
+      metadata: {
+        dataSource: 'MOCK_DATA',
+        reason: 'RapidAPI Patent API not configured or failed - using demo data',
+        timestamp: new Date().toISOString(),
+        source: 'Mock Data Fallback'
+      }
+    };
+  }
+
+  async getPatentDetails(patentId) {
     try {
-      // REAL USPTO API call
-      const searchQuery = this.buildPatentSearchQuery(drugName, companyName, options)
-      const results = await this.executePatentSearch(searchQuery)
-      const processedResults = await this.processPatentResults(results)
+      // Try RapidAPI first for real data
+      if (this.rapidApiKey) {
+        const response = await axios.get(`${this.baseUrl}/patent/detail`, {
+          params: { id: patentId },
+          headers: {
+            'x-rapidapi-host': this.rapidApiHost,
+            'x-rapidapi-key': this.rapidApiKey
+          }
+        });
 
-      // Cache results
-      this.cache.set(cacheKey, {
-        data: processedResults,
-        timestamp: Date.now()
-      })
-
-      logger.info(`Found ${processedResults.length} patents for drug: ${drugName} via REAL USPTO API`)
-      return processedResults
+        if (response.data) {
+          return {
+            success: true,
+            data: this.transformRapidApiDetailResponse(response.data),
+            metadata: {
+              dataSource: 'REAL_RAPIDAPI_PATENT',
+              timestamp: new Date().toISOString(),
+              source: 'RapidAPI Global Patent API',
+              patentId: patentId
+            }
+          };
+        }
+      }
     } catch (error) {
-      logger.error('USPTO patent search error:', error)
-      // Return mock data with clear labeling when API fails
-      return this.getMockPatentsWithLabel(drugName, companyName, 'USPTO API failed - using demo data')
+      console.log('RapidAPI Patent details failed, falling back to mock data:', error.message);
+    }
+
+    // Fallback to mock data with clear labeling
+    return {
+      success: true,
+      data: this.getMockPatentDetails(patentId),
+      metadata: {
+        dataSource: 'MOCK_DATA',
+        reason: 'RapidAPI Patent API not configured or failed - using demo data',
+        timestamp: new Date().toISOString(),
+        source: 'Mock Data Fallback'
+      }
+    };
+  }
+
+  transformRapidApiResponse(rapidApiData) {
+    // Transform RapidAPI response to match our expected format
+    try {
+      if (rapidApiData.patents && Array.isArray(rapidApiData.patents)) {
+        return {
+          patents: rapidApiData.patents.map(patent => ({
+            patentNumber: patent.patentNumber || patent.id || 'Unknown',
+            title: patent.title || patent.name || 'No Title Available',
+            assignee: patent.assignee || patent.owner || 'Unknown Assignee',
+            filingDate: patent.filingDate || patent.applicationDate || 'Unknown',
+            publicationDate: patent.publicationDate || patent.publishDate || 'Unknown',
+            status: patent.status || patent.legalStatus || 'Unknown',
+            abstract: patent.abstract || patent.description || 'No abstract available',
+            inventors: patent.inventors || patent.inventor || 'Unknown',
+            classification: patent.classification || patent.cpc || 'Unknown'
+          }))
+        };
+      }
+      
+      // If different structure, return as-is
+      return rapidApiData;
+    } catch (error) {
+      console.error('Error transforming RapidAPI response:', error);
+      return rapidApiData;
     }
   }
 
-  /**
-   * Get detailed patent information by patent number - REAL USPTO API
-   */
-  async getPatentDetails(patentNumber) {
-    const cacheKey = `patent_details_${patentNumber}`
-    
-    if (this.cache.has(cacheKey)) {
-      const cached = this.cache.get(cacheKey)
-      if (Date.now() - cached.timestamp < this.cacheTimeout) {
-        return cached.data
-      }
-    }
-
+  transformRapidApiDetailResponse(rapidApiData) {
+    // Transform RapidAPI detail response
     try {
-      // REAL USPTO API call via Google Patents (more reliable)
-      const patentData = await this.fetchPatentDetailsFromGoogle(patentNumber)
-      const processedData = this.processPatentDetails(patentData)
-
-      // Cache results
-      this.cache.set(cacheKey, {
-        data: processedData,
-        timestamp: Date.now()
-      })
-
-      return processedData
+      return {
+        patentNumber: rapidApiData.patentNumber || rapidApiData.id || 'Unknown',
+        title: rapidApiData.title || rapidApiData.name || 'No Title Available',
+        assignee: rapidApiData.assignee || rapidApiData.owner || 'Unknown Assignee',
+        filingDate: rapidApiData.filingDate || rapidApiData.applicationDate || 'Unknown',
+        publicationDate: rapidApiData.publicationDate || rapidApiData.publishDate || 'Unknown',
+        status: rapidApiData.status || rapidApiData.legalStatus || 'Unknown',
+        abstract: rapidApiData.abstract || rapidApiData.description || 'No abstract available',
+        inventors: rapidApiData.inventors || rapidApiData.inventor || 'Unknown',
+        classification: rapidApiData.classification || rapidApiData.cpc || 'Unknown',
+        claims: rapidApiData.claims || 'No claims available',
+        citations: rapidApiData.citations || [],
+        legalEvents: rapidApiData.legalEvents || []
+      };
     } catch (error) {
-      logger.error(`Error fetching patent details for ${patentNumber}:`, error)
-      // Return mock data with clear labeling when API fails
-      return this.getMockPatentDetailsWithLabel(patentNumber, 'USPTO API failed - using demo data')
+      console.error('Error transforming RapidAPI detail response:', error);
+      return rapidApiData;
     }
   }
 
@@ -471,6 +526,69 @@ class USPTOApiService extends EventEmitter {
       reason: reason,
       dataQuality: 'demo_only'
     }
+  }
+
+  getMockPatentData(query) {
+    // Mock patent data for demonstration
+    return {
+      patents: [
+        {
+          patentNumber: 'US9876543',
+          title: 'CRISPR Gene Editing Delivery System for Cancer Treatment',
+          assignee: 'DemoBio Inc.',
+          filingDate: '2020-03-15',
+          publicationDate: '2021-09-20',
+          status: 'Active',
+          abstract: 'A novel delivery system for CRISPR gene editing technology specifically designed for cancer treatment applications.',
+          inventors: 'Dr. Jane Smith, Dr. John Doe',
+          classification: 'C12N 15/11'
+        },
+        {
+          patentNumber: 'US8765432',
+          title: 'Immunotherapy Composition for Solid Tumors',
+          assignee: 'PharmaDemo Corp.',
+          filingDate: '2019-11-08',
+          publicationDate: '2020-12-15',
+          status: 'Active',
+          abstract: 'Composition and method for treating solid tumors using enhanced immunotherapy approaches.',
+          inventors: 'Dr. Robert Johnson, Dr. Sarah Wilson',
+          classification: 'A61K 39/395'
+        },
+        {
+          patentNumber: 'US7654321',
+          title: 'Targeted Drug Delivery Using Nanoparticles',
+          assignee: 'NanoDemo Technologies',
+          filingDate: '2018-07-22',
+          publicationDate: '2019-10-30',
+          status: 'Active',
+          abstract: 'Nanoparticle-based drug delivery system for targeted cancer treatment with reduced side effects.',
+          inventors: 'Dr. Michael Brown, Dr. Lisa Davis',
+          classification: 'A61K 9/51'
+        }
+      ]
+    };
+  }
+
+  getMockPatentDetails(patentId) {
+    // Mock patent details for demonstration
+    return {
+      patentNumber: patentId,
+      title: 'CRISPR Gene Editing Delivery System for Cancer Treatment',
+      assignee: 'DemoBio Inc.',
+      filingDate: '2020-03-15',
+      publicationDate: '2021-09-20',
+      status: 'Active',
+      abstract: 'A novel delivery system for CRISPR gene editing technology specifically designed for cancer treatment applications. The system utilizes advanced lipid nanoparticles to deliver CRISPR components to cancer cells with high specificity and efficiency.',
+      inventors: 'Dr. Jane Smith, Dr. John Doe',
+      classification: 'C12N 15/11',
+      claims: '1. A composition comprising CRISPR-Cas9 components encapsulated in lipid nanoparticles...',
+      citations: ['US8765432', 'US7654321'],
+      legalEvents: [
+        { date: '2020-03-15', event: 'Application Filed' },
+        { date: '2021-09-20', event: 'Patent Published' },
+        { date: '2022-01-15', event: 'Patent Granted' }
+      ]
+    };
   }
 
   // Utility methods

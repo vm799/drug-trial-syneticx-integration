@@ -330,6 +330,22 @@ const dataSources = ref([
     lastUpdated: 'Never',
     error: null,
     setupRequired: 'API key registration required'
+  },
+  {
+    id: 'rapidapi-patent',
+    name: 'RapidAPI Patent Data',
+    description: 'Global patent database with search and details',
+    status: 'needs_config',
+    lastUpdated: 'Never',
+    error: 'API key not configured',
+    setupRequired: 'API key registration required',
+    setupUrl: 'https://rapidapi.com/hub/patent-apis',
+    setupSteps: [
+      'Go to RapidAPI Patent APIs',
+      'Sign up for free account',
+      'Get API key',
+      'Add to .env file: RAPIDAPI_PATENT_KEY=your_key'
+    ]
   }
 ])
 
@@ -353,7 +369,8 @@ const testAllAPIs = async () => {
       testYahooFinanceAPI(),
       testUSPTOAPI(),
       testAlphaVantageAPI(),
-      testOpenAIAPI()
+      testOpenAIAPI(),
+      testRapidAPIPatent()
     ])
     
     await refreshStatus()
@@ -416,6 +433,25 @@ const testAlphaVantageAPI = async () => {
 const testOpenAIAPI = async () => {
   // This would test if OpenAI key is configured
   updateSourceStatus('openai', 'needs_config', 'Never', 'API key required')
+}
+
+const testRapidAPIPatent = async () => {
+  try {
+    updateSourceStatus('rapidapi-patent', 'testing', 'Testing API connection...');
+    
+    const response = await fetch('/api/uspto/search?query=cancer+treatment');
+    const data = await response.json();
+    
+    if (data.success && data.metadata?.dataSource === 'REAL_RAPIDAPI_PATENT') {
+      updateSourceStatus('rapidapi-patent', 'working', null, '2024-01-15');
+      // Assuming $toast is available globally or imported
+      // this.$toast.success('RapidAPI Patent API is working! You now have real patent data.');
+    } else {
+      updateSourceStatus('rapidapi-patent', 'failed', 'API returned demo data - check configuration');
+    }
+  } catch (error: any) {
+    updateSourceStatus('rapidapi-patent', 'failed', `Test failed: ${error.message}`);
+  }
 }
 
 const updateSourceStatus = (id: string, status: string, lastUpdated: string, error?: string) => {
