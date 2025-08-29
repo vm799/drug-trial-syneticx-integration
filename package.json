@@ -26,11 +26,8 @@
     "@langchain/core": "^0.3.72",
     "@langchain/openai": "^0.6.9",
     "@sentry/vue": "^10.5.0",
-
-    "bull": "^4.16.5",
-
     "axios": "^1.11.0",
-
+    "bull": "^4.16.5",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",

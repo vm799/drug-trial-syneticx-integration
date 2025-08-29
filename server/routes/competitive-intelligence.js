@@ -5,6 +5,7 @@ import { body, query, param, validationResult } from 'express-validator'
 import CompetitiveIntelligence from '../models/CompetitiveIntelligence.js'
 import CompetitiveIntelligenceAgent from '../agents/CompetitiveIntelligenceAgent.js'
 import getOpenAIService from '../services/openaiService.js'
+import FinancialDataService from '../services/financialDataService.js'
 import auth, { premiumAuth } from '../middleware/auth.js'
 import logger from '../utils/logger.js'
 
@@ -13,6 +14,7 @@ const router = express.Router()
 // Initialize services
 const openaiService = getOpenAIService()
 const competitiveAgent = new CompetitiveIntelligenceAgent(openaiService)
+const financialService = new FinancialDataService()
 
 // @route   GET /api/competitive-intelligence/dashboard
 // @desc    Get competitive intelligence dashboard data
@@ -99,147 +101,100 @@ router.get('/dashboard', (req, res, next) => {
           companyInfo: { name: 'InnovateMed Ltd.', ticker: 'INNO' },
           threatScore: 58,
           overallThreat: 'medium',
-          financialMetrics: { marketCap: 34000000000 },
+          financialMetrics: { marketCap: 45000000000 },
           pipelineAnalysis: { totalAssets: 8 },
           patentPortfolio: { totalPatents: 89 },
           recentActivities: [
-            { type: 'clinical_trial', description: 'Phase III trial results exceeded expectations', date: new Date() }
+            { type: 'fda_approval', description: 'FDA approval for breakthrough therapy', date: new Date() }
           ],
           lastAnalyzed: new Date()
         }
       ]
     }
 
-    // Calculate threat summary using current competitors data
-    const competitorsForSummary = competitors.length > 0 ? competitors : []
-    const threatSummary = competitorsForSummary.reduce((acc, comp) => {
+    // Enhance with live financial data for demo companies
+    const enhancedCompetitors = await Promise.all(
+      competitors.map(async (comp) => {
+        try {
+          // Try to get live financial data for demo companies
+          if (comp.companyInfo?.name && comp._id.startsWith('comp')) {
+            const liveFinancials = await financialService.getCompanyFinancials(comp.companyInfo.name)
+            if (liveFinancials) {
+              return {
+                ...comp,
+                financialMetrics: {
+                  ...comp.financialMetrics,
+                  marketCap: liveFinancials.marketCap,
+                  revenue: liveFinancials.revenue,
+                  profitMargin: liveFinancials.profitMargin,
+                  currentPrice: liveFinancials.currentPrice,
+                  priceChange: liveFinancials.priceChange,
+                  volume: liveFinancials.volume,
+                  source: liveFinancials.source
+                },
+                companyInfo: {
+                  ...comp.companyInfo,
+                  symbol: liveFinancials.symbol,
+                  lastUpdated: liveFinancials.lastUpdated
+                }
+              }
+            }
+          }
+          return comp
+        } catch (error) {
+          logger.warn(`Failed to enhance ${comp.companyInfo?.name}:`, error.message)
+          return comp
+        }
+      })
+    )
+
+    // Calculate threat summary
+    const threatSummary = enhancedCompetitors.reduce((acc, comp) => {
       acc[comp.overallThreat] = (acc[comp.overallThreat] || 0) + 1
       return acc
     }, { critical: 0, high: 0, medium: 0, low: 0 })
 
     // Calculate total market metrics
-    const totalMarketCap = competitorsForSummary.reduce((sum, comp) => 
+    const totalMarketCap = enhancedCompetitors.reduce((sum, comp) => 
       sum + (comp.financialMetrics?.marketCap || 0), 0
     )
     
-    const totalPipelineAssets = competitorsForSummary.reduce((sum, comp) => 
+    const totalPipelineAssets = enhancedCompetitors.reduce((sum, comp) => 
       sum + (comp.pipelineAnalysis?.totalAssets || 0), 0
     )
 
     // Get recent market activities
     const recentActivities = []
-    competitors.forEach(comp => {
+    enhancedCompetitors.forEach(comp => {
       if (comp.recentActivities && comp.recentActivities.length > 0) {
         comp.recentActivities.slice(0, 2).forEach(activity => {
           recentActivities.push({
             ...activity,
-            company: comp.companyInfo.name
+            company: comp.companyInfo.name,
+            companyId: comp._id
           })
         })
       }
     })
 
-    // Sort recent activities by date
+    // Sort activities by date
     recentActivities.sort((a, b) => new Date(b.date) - new Date(a.date))
 
-    // Mock data for recent acquisitions, partnerships, and pipeline advancements
-    const recentAcquisitions = [
-      {
-        id: 1,
-        acquirer: 'PharmaCorp',
-        target: 'BioInnovate',
-        value: 2500000000,
-        date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-        therapeuticArea: 'oncology'
-      },
-      {
-        id: 2,
-        acquirer: 'MegaPharma',
-        target: 'GeneTherapy Inc',
-        value: 1800000000,
-        date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        therapeuticArea: 'rare_diseases'
-      }
-    ]
-
-    const strategicPartnerships = [
-      {
-        id: 1,
-        company1: 'GlobalBio',
-        company2: 'TechPharma',
-        type: 'research_collaboration',
-        date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-        therapeuticArea: 'neurology'
-      },
-      {
-        id: 2,
-        company1: 'InnovateMed',
-        company2: 'BigPharma',
-        type: 'licensing_agreement',
-        date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-        therapeuticArea: 'immunology'
-      }
-    ]
-
-    const pipelineAdvancements = [
-      {
-        id: 1,
-        company: 'PharmaCorp',
-        drug: 'PC-2024',
-        newPhase: 'Phase III',
-        previousPhase: 'Phase II',
-        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        therapeuticArea: 'oncology'
-      },
-      {
-        id: 2,
-        company: 'BioAdvance',
-        drug: 'BA-401',
-        newPhase: 'FDA Approval',
-        previousPhase: 'Phase III',
-        date: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
-        therapeuticArea: 'cardiology'
-      }
-    ]
-
-    // Format competitor data
-    const formattedCompetitors = competitors.map(comp => ({
-      id: comp._id,
-      companyName: comp.companyInfo.name,
-      ticker: comp.companyInfo.ticker,
-      threatScore: comp.threatScore,
-      overallThreat: comp.overallThreat,
-      marketCap: comp.financialMetrics?.marketCap || 0,
-      pipelineAssets: comp.pipelineAnalysis?.totalAssets || 0,
-      patentCount: comp.patentPortfolio?.totalPatents || 0,
-      recentActivities: comp.recentActivities || [],
-      lastAnalyzed: comp.lastAnalyzed
-    }))
-
-    // Log API usage if user exists
-    if (req.user && logger.apiUsage) {
-      logger.apiUsage(req.user._id, 'competitive_intelligence_dashboard', 0, 0)
+    const summary = {
+      totalCompetitors: enhancedCompetitors.length,
+      threatSummary,
+      totalMarketCap,
+      totalPipelineAssets,
+      recentActivities: recentActivities.slice(0, 10)
     }
+
+    logger.apiUsage(req.user._id, 'competitive_intelligence_dashboard', 0, 0)
 
     res.json({
       success: true,
       data: {
-        summary: {
-          totalCompetitors: competitorsForSummary.length,
-          threatBreakdown: threatSummary,
-          totalMarketCap,
-          totalPipelineAssets
-        },
-        competitors: formattedCompetitors,
-        marketActivity: {
-          recentAcquisitions,
-          strategicPartnerships,
-          pipelineAdvancements
-        },
-        metadata: {
-          lastUpdated: new Date(),
-          filters: { threatLevel, sortBy, limit }
-        }
+        summary,
+        competitors: enhancedCompetitors
       }
     })
 

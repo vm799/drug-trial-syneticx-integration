@@ -96,6 +96,16 @@
               <span>Executive Report</span>
             </span>
           </button>
+          <button 
+            @click="activeTab = 'research'" 
+            :class="enhancedTabClass('research')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          >
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">🔬</span>
+              <span>Research Insights</span>
+            </span>
+          </button>
         </div>
       </div>
     </nav>
@@ -490,6 +500,27 @@
           </div>
           <ExecutiveReport />
         </div>
+
+        <!-- Research Insights Tab -->
+        <div v-if="activeTab === 'research'" class="space-y-8">
+          <div class="bg-gradient-to-r from-indigo-700 to-purple-900 rounded-xl p-8 text-white">
+            <h2 class="text-3xl font-bold mb-3">Research Insights Engine</h2>
+            <p class="text-indigo-100 text-lg mb-4">
+              Comprehensive research analysis combining clinical trials, patents, and financial data. 
+              AI-powered insights for strategic decision making and market opportunity assessment.
+            </p>
+            <div class="bg-indigo-800/30 rounded-lg p-4 mt-6">
+              <h4 class="font-semibold mb-2">Analysis Features:</h4>
+              <ul class="text-indigo-100 text-sm space-y-1">
+                <li>• Multi-source data integration (ClinicalTrials.gov, USPTO, Financial APIs)</li>
+                <li>• Market opportunity scoring and competitive landscape analysis</li>
+                <li>• Strategic recommendations with actionable insights</li>
+                <li>• Export capabilities for further analysis</li>
+              </ul>
+            </div>
+          </div>
+          <ResearchInsights />
+        </div>
       </main>
     </div>
 
@@ -540,11 +571,12 @@ import CompetitiveIntelligence from './components/CompetitiveIntelligence.vue'
 import InvestmentResearch from './components/InvestmentResearch.vue'
 import USPTOIntegration from './components/USPTOIntegration.vue'
 import ExecutiveReport from './components/ExecutiveReport.vue'
+import ResearchInsights from './components/ResearchInsights.vue'
 import apiService from './services/api'
 import { formatCurrency, formatLargeNumber } from './utils/formatters'
 
 // Application State
-const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto' | 'executive'>('dashboard')
+const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto' | 'executive' | 'research'>('dashboard')
 const isLoading = ref(false)
 const systemStatus = ref('All Systems Operational')
 const chatMessage = ref('')
