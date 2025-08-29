@@ -1,5 +1,12 @@
 <template>
 	<div class="space-y-4">
+		<div class="flex flex-wrap items-start gap-3">
+			<div class="flex-1">
+				<h3 class="text-xl font-semibold text-gray-900">Investment Research Analytics</h3>
+				<p class="text-sm text-gray-600">Run patent-cliff impact analysis to estimate revenue exposure.</p>
+			</div>
+			<button @click="runAnalysis" :disabled="loading || !companyName" class="ml-auto px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Analyzing...' : 'Run analysis' }}</button>
+		</div>
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 			<div>
 				<label class="block text-xs font-medium text-gray-600 mb-1">Company</label>
@@ -16,7 +23,6 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<label class="inline-flex items-center text-sm"><input type="checkbox" v-model="includeScenarios" class="mr-2"/>Include scenarios</label>
-			<button @click="runAnalysis" :disabled="loading || !companyName" class="ml-auto px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Analyzing...' : 'Run analysis' }}</button>
 		</div>
 
 		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm">{{ error }}</div>

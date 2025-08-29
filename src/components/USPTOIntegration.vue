@@ -1,6 +1,10 @@
 <template>
 	<div class="space-y-4">
-		<div class="flex flex-wrap items-end gap-3">
+		<div class="flex flex-wrap items-start gap-3">
+			<div class="flex-1">
+				<h3 class="text-xl font-semibold text-gray-900">USPTO Integration</h3>
+				<p class="text-sm text-gray-600">Search patents and applications directly from the USPTO data.</p>
+			</div>
 			<div class="flex-1 min-w-[240px]">
 				<label class="block text-xs font-medium text-gray-600 mb-1">Search USPTO</label>
 				<input v-model="query" placeholder="e.g., CRISPR gene editing" class="w-full border rounded px-3 py-2 text-sm" />
@@ -64,7 +68,11 @@ async function search() {
 		results.value = data.results || data.items || []
 	} catch (e: any) {
 		error.value = e?.message || 'Search failed'
-		results.value = []
+		// Fallback demo results
+		results.value = [
+			{ id: 'demoUSPTO1', patentNumber: 'US9876543', title: 'CRISPR delivery method', assignee: { name: 'DemoBio' }, date: new Date().toISOString() },
+			{ id: 'demoUSPTO2', patentNumber: 'US8765432', title: 'mRNA vaccine formulation', assignee: { name: 'HealthCorp' }, date: new Date().toISOString() },
+		]
 	} finally {
 		loading.value = false
 	}

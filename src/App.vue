@@ -127,7 +127,7 @@
                 @keyup.enter.prevent="sendMessage"
                 rows="3"
                 placeholder="Please type in your query here e.g. CAR-T cell therapy, CRISPR gene editing, Immunotherapy combinations, mRNA vaccines"
-                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium placeholder-gray-500 bg-white resize-y min-h-[80px]"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-900 font-medium placeholder-gray-500 dark:placeholder-gray-500 bg-white dark:bg-white resize-y min-h-[80px]"
               ></textarea>
               <div class="flex justify-end">
                 <button 
