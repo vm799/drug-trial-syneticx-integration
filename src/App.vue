@@ -33,43 +33,68 @@
     </header>
 
     <!-- Enterprise Navigation Tabs -->
-    <nav class="bg-white border-b border-gray-200">
+    <nav class="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 shadow-sm">
       <div class="max-w-[1800px] mx-auto px-6">
-        <div class="flex space-x-0 overflow-x-auto">
+        <div class="flex space-x-2 overflow-x-auto py-2">
           <button 
             @click="activeTab = 'dashboard'" 
-            :class="enterpriseTabClass('dashboard')" 
-            class="px-8 py-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all duration-200 hover:bg-gray-50"
+            :class="enhancedTabClass('dashboard')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            Executive Dashboard
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">📊</span>
+              <span>Executive Dashboard</span>
+            </span>
           </button>
           <button 
             @click="activeTab = 'patent'" 
-            :class="enterpriseTabClass('patent')" 
-            class="px-8 py-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all duration-200 hover:bg-gray-50"
+            :class="enhancedTabClass('patent')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            Patent Cliff Monitor
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">⚖️</span>
+              <span>Patent Cliff Monitor</span>
+            </span>
           </button>
           <button 
             @click="activeTab = 'competitive'" 
-            :class="enterpriseTabClass('competitive')" 
-            class="px-8 py-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all duration-200 hover:bg-gray-50"
+            :class="enhancedTabClass('competitive')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            Competitive Intelligence AI
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">🤖</span>
+              <span>Competitive Intelligence AI</span>
+            </span>
           </button>
           <button 
             @click="activeTab = 'investment'" 
-            :class="enterpriseTabClass('investment')" 
-            class="px-8 py-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all duration-200 hover:bg-gray-50"
+            :class="enhancedTabClass('investment')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            Investment Research
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">💰</span>
+              <span>Investment Research</span>
+            </span>
           </button>
           <button 
             @click="activeTab = 'uspto'" 
-            :class="enterpriseTabClass('uspto')" 
-            class="px-8 py-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all duration-200 hover:bg-gray-50"
+            :class="enhancedTabClass('uspto')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            USPTO Integration
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">🏛️</span>
+              <span>USPTO Integration</span>
+            </span>
+          </button>
+          <button 
+            @click="activeTab = 'executive'" 
+            :class="enhancedTabClass('executive')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          >
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">📊</span>
+              <span>Executive Report</span>
+            </span>
           </button>
         </div>
       </div>
@@ -217,7 +242,7 @@
           <!-- Key Insights Grid -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- AI Research Assistant -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg border-2 border-blue-200 p-6 hover:shadow-xl transition-all duration-300">
               <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-semibold text-gray-900">AI Research Assistant</h3>
                 <div class="flex items-center space-x-2">
@@ -269,7 +294,7 @@
             </div>
 
             <!-- Latest Intelligence -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="bg-gradient-to-br from-white to-purple-50 rounded-xl shadow-lg border-2 border-purple-200 p-6 hover:shadow-xl transition-all duration-300">
               <h3 class="text-lg font-semibold text-gray-900 mb-6">Latest Intelligence</h3>
               <div class="space-y-4">
                 <div v-if="latestAlerts.length === 0" class="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
@@ -375,6 +400,27 @@
           </div>
           <USPTOIntegration />
         </div>
+
+        <!-- Executive Report Tab -->
+        <div v-if="activeTab === 'executive'" class="space-y-8">
+          <div class="bg-gradient-to-r from-gray-700 to-gray-900 rounded-xl p-8 text-white">
+            <h2 class="text-3xl font-bold mb-3">Executive Board Report</h2>
+            <p class="text-gray-100 text-lg mb-4">
+              Professional pharmaceutical intelligence presentation designed for C-suite and board-level decision making. 
+              Comprehensive 3-slide executive summary with actionable insights.
+            </p>
+            <div class="bg-gray-800/30 rounded-lg p-4 mt-6">
+              <h4 class="font-semibold mb-2">Report Features:</h4>
+              <ul class="text-gray-100 text-sm space-y-1">
+                <li>• Executive summary with key metrics and strategic actions</li>
+                <li>• Patent cliff analysis with mitigation strategies</li>
+                <li>• Competitive intelligence and investment recommendations</li>
+                <li>• Board-ready presentation format with PDF export</li>
+              </ul>
+            </div>
+          </div>
+          <ExecutiveReport />
+        </div>
       </main>
     </div>
 
@@ -424,10 +470,11 @@ import PatentCliffMonitor from './components/PatentCliffMonitor.vue'
 import CompetitiveIntelligence from './components/CompetitiveIntelligence.vue'
 import InvestmentResearch from './components/InvestmentResearch.vue'
 import USPTOIntegration from './components/USPTOIntegration.vue'
+import ExecutiveReport from './components/ExecutiveReport.vue'
 import apiService from './services/api'
 
 // Application State
-const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto'>('dashboard')
+const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto' | 'executive'>('dashboard')
 const isLoading = ref(false)
 const systemStatus = ref('All Systems Operational')
 const chatMessage = ref('')
@@ -469,6 +516,21 @@ const latestAlerts = ref([
 ])
 
 // Methods
+const enhancedTabClass = (tab: string) => {
+  if (activeTab.value === tab) {
+    const gradients = {
+      dashboard: 'bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/30',
+      patent: 'bg-gradient-to-br from-green-500 to-green-600 text-white border-green-600 shadow-lg shadow-green-500/30',
+      competitive: 'bg-gradient-to-br from-purple-500 to-purple-600 text-white border-purple-600 shadow-lg shadow-purple-500/30',
+      investment: 'bg-gradient-to-br from-orange-500 to-orange-600 text-white border-orange-600 shadow-lg shadow-orange-500/30',
+      uspto: 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/30',
+      executive: 'bg-gradient-to-br from-gray-800 to-gray-900 text-white border-gray-800 shadow-lg shadow-gray-800/30'
+    }
+    return gradients[tab] || gradients.dashboard
+  }
+  return 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900'
+}
+
 const enterpriseTabClass = (tab: string) => (
   activeTab.value === tab
     ? 'border-blue-600 text-blue-700 bg-blue-50'
@@ -618,6 +680,42 @@ const checkSystemStatus = async () => {
   }
 }
 
+// Demo authentication for live API testing
+const setupDemoAuth = () => {
+  // Set demo auth tokens for API testing
+  localStorage.setItem('authToken', 'demo-token-' + Date.now())
+  localStorage.setItem('sessionId', 'demo-session-' + Date.now())
+  console.log('✅ Demo authentication configured for live API testing')
+}
+
+// Multi-agent knowledge graph demo
+const runKnowledgeGraphDemo = async () => {
+  try {
+    console.log('🧠 Starting Multi-Agent Knowledge Graph Demo...')
+    
+    const response = await api.request('/knowledge-graph/demo', {
+      method: 'POST',
+      body: JSON.stringify({
+        demo: true,
+        userQuery: 'Build pharmaceutical knowledge graph from FDA data'
+      })
+    })
+    
+    if (response.success) {
+      console.log('✅ Knowledge Graph Construction:', response.data)
+      console.log('📊 Entities extracted:', response.data.construction?.knowledgeGraph?.entities || 0)
+      console.log('🔗 Relationships found:', response.data.construction?.knowledgeGraph?.relationships || 0)
+      
+      // Show demo results in UI
+      if (response.data.sampleQuery) {
+        console.log('💡 Sample Query Result:', response.data.sampleQuery.response)
+      }
+    }
+  } catch (error) {
+    console.error('Knowledge Graph Demo failed:', error)
+  }
+}
+
 const loadInitialData = async () => {
   try {
     // Initialize metrics with sample data
@@ -627,16 +725,25 @@ const loadInitialData = async () => {
     metrics.totalRevenue = 45000000000 // $45B
     metrics.totalPatents = 247
     metrics.competitors = 18
+    
+    // Set up demo authentication for live API calls
+    setupDemoAuth()
   } catch (error) {
     console.error('Failed to load initial data:', error)
   }
 }
 
+// Expose demo functions globally for testing
+window.runKnowledgeGraphDemo = runKnowledgeGraphDemo
+window.setupDemoAuth = setupDemoAuth
+
 // Lifecycle
 onMounted(() => {
   checkSystemStatus()
   loadInitialData()
-  console.log('🚀 Pharmaceutical Intelligence Platform Enterprise Edition Loaded')
+  console.log('🚀 Competitive Medical Intelligence AI Platform Loaded')
+  console.log('🔬 Run window.runKnowledgeGraphDemo() to test multi-agent system')
+  console.log('🔐 Run window.setupDemoAuth() to configure API authentication')
 })
 </script>
 

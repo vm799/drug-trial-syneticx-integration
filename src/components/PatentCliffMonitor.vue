@@ -1,6 +1,6 @@
 <template>
-	<div class="space-y-4">
-		<div class="sticky top-0 z-10 bg-gray-50/80 backdrop-blur supports-[backdrop-filter]:bg-gray-50/60 border rounded p-3 flex flex-wrap items-start gap-3">
+	<div class="space-y-6">
+		<div class="sticky top-0 z-10 bg-gradient-to-r from-green-50 to-green-100 backdrop-blur border-2 border-green-200 rounded-xl shadow-lg p-4 flex flex-wrap items-start gap-4">
 			<div class="flex-1">
 				<h3 class="text-xl font-semibold text-gray-900">Patent Cliff Monitoring</h3>
 				<p class="text-sm text-gray-600">Track expiring patents, risk levels, and revenue at risk.</p>
@@ -60,27 +60,27 @@
 			</div>
 		</div>
 
-		<div class="bg-white rounded shadow overflow-hidden">
+		<div class="bg-white rounded-xl shadow-xl border-2 border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300">
 			<div v-if="loading" class="p-4 animate-pulse text-sm text-gray-600">Loading patent cliffs…</div>
 			<table class="min-w-full text-sm">
-				<thead class="bg-gray-50">
+				<thead class="bg-gradient-to-r from-green-600 to-green-700 text-white">
 					<tr>
-						<th class="text-left px-4 py-2">Patent</th>
-						<th class="text-left px-4 py-2">Drug</th>
-						<th class="text-left px-4 py-2">Company</th>
-						<th class="text-left px-4 py-2">Expiry</th>
-						<th class="text-left px-4 py-2">Risk</th>
-						<th class="text-right px-4 py-2">Revenue</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Patent</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Drug</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Company</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Expiry</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Risk</th>
+						<th class="text-right px-6 py-4 font-bold tracking-wider">Revenue</th>
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="patent in patents" :key="patent.id" class="border-t">
-						<td class="px-4 py-2">{{ patent.patentNumber }}</td>
-						<td class="px-4 py-2">{{ patent.drugName }}</td>
-						<td class="px-4 py-2">{{ patent.company }}</td>
-						<td class="px-4 py-2">{{ formatDate(patent.expiryDate) }} ({{ patent.daysToExpiry }}d)</td>
-						<td class="px-4 py-2"><span :class="riskBadgeClass(patent.riskLevel)" class="px-2 py-1 rounded text-xs">{{ patent.riskLevel }}</span></td>
-						<td class="px-4 py-2 text-right">${{ formatNumber(patent.estimatedRevenue) }}</td>
+					<tr v-for="patent in patents" :key="patent.id" class="border-t border-gray-200 hover:bg-green-50 transition-colors duration-200">
+						<td class="px-6 py-4 font-mono text-sm font-medium text-gray-900">{{ patent.patentNumber }}</td>
+						<td class="px-6 py-4 font-semibold text-gray-900">{{ patent.drugName }}</td>
+						<td class="px-6 py-4 text-gray-800">{{ patent.company }}</td>
+						<td class="px-6 py-4 text-gray-800">{{ formatDate(patent.expiryDate) }} <span class="text-xs bg-gray-100 px-2 py-1 rounded">({{ patent.daysToExpiry }}d)</span></td>
+						<td class="px-6 py-4"><span :class="riskBadgeClass(patent.riskLevel)" class="px-3 py-1 rounded-full text-xs font-bold shadow-sm">{{ patent.riskLevel.toUpperCase() }}</span></td>
+						<td class="px-6 py-4 text-right font-bold text-lg text-gray-900">${{ formatNumber(patent.estimatedRevenue) }}</td>
 					</tr>
 				</tbody>
 			</table>
