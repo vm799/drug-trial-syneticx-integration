@@ -6,7 +6,13 @@ export let dbConnected = false
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/medresearch-ai'
+    const mongoURI = process.env.MONGODB_URI
+    
+    if (!mongoURI) {
+      logger.warn('No MONGODB_URI provided - running in demo mode without database')
+      dbConnected = false
+      return
+    }
 
     const conn = await mongoose.connect(mongoURI, {
       maxPoolSize: 10, // Maintain up to 10 socket connections
@@ -33,7 +39,7 @@ const connectDB = async () => {
       dbConnected = true
     })
   } catch (err) {
-    logger.error('Database connection failed (continuing in degraded mode):', err?.message || err)
+    logger.error('Database connection failed (continuing in demo mode):', err?.message || err)
     dbConnected = false
   }
 }

@@ -19,6 +19,7 @@
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
+    "fast-xml-parser": "^5.2.5",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
@@ -26,7 +27,7 @@
     "nodemailer": "^7.0.5",
     "openai": "^4.20.1",
     "socket.io": "^4.7.4",
-    "winston": "^3.11.0",
+    "winston": "^3.17.0",
     "xss": "^1.0.14"
   },
   "devDependencies": {
