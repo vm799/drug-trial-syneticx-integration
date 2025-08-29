@@ -48,7 +48,7 @@
 			</div>
 			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
 				<div class="text-xs text-black font-medium">Revenue at risk</div>
-				<div class="text-2xl font-bold text-black">${{ formatNumber(summary.totalRevenueAtRisk) }}</div>
+				<div class="text-2xl font-bold text-black">{{ formatCurrency(summary.totalRevenueAtRisk) }}</div>
 			</div>
 			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
 				<div class="text-xs text-black font-medium">Timeframe</div>
@@ -61,7 +61,7 @@
 		</div>
 
 		<div class="bg-white rounded-xl shadow-xl border-2 border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300">
-			<div v-if="loading" class="p-4 animate-pulse text-sm text-gray-600">Loading patent cliffs…</div>
+			<div v-if="loading" class="p-4 animate-pulse text-sm text-black font-medium">Loading patent cliffs…</div>
 			<table class="min-w-full text-sm">
 				<thead class="bg-gradient-to-r from-green-600 to-green-700 text-white">
 					<tr>
@@ -80,7 +80,7 @@
 						<td class="px-6 py-4 text-gray-800">{{ patent.company }}</td>
 						<td class="px-6 py-4 text-gray-800">{{ formatDate(patent.expiryDate) }} <span class="text-xs bg-gray-100 px-2 py-1 rounded">({{ patent.daysToExpiry }}d)</span></td>
 						<td class="px-6 py-4"><span :class="riskBadgeClass(patent.riskLevel)" class="px-3 py-1 rounded-full text-xs font-bold shadow-sm">{{ patent.riskLevel.toUpperCase() }}</span></td>
-						<td class="px-6 py-4 text-right font-bold text-lg text-gray-900">${{ formatNumber(patent.estimatedRevenue) }}</td>
+						<td class="px-6 py-4 text-right font-bold text-lg text-black">{{ formatCurrency(patent.estimatedRevenue) }}</td>
 					</tr>
 				</tbody>
 			</table>
@@ -174,6 +174,7 @@
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
 import { exportToCSV } from '../utils/export'
+import { formatCurrency, formatLargeNumber, formatDate as formatDateUtil } from '../utils/formatters'
 
 const loading = ref(false)
 const error = ref('')
@@ -199,7 +200,7 @@ const dataSources = ref([
     description: 'Official US Patent and Trademark Office database',
     lastSync: '2 hours ago',
     status: 'Active',
-    url: 'https://patents.uspto.gov'
+    url: 'https://www.uspto.gov/patents'
   },
   {
     id: 2,
@@ -236,11 +237,11 @@ const dataSources = ref([
 ])
 
 function formatNumber(n: number): string {
-	return (n || 0).toLocaleString()
+	return formatLargeNumber(n || 0)
 }
 
 function formatDate(d: string): string {
-	try { return new Date(d).toLocaleDateString() } catch { return d }
+	return formatDateUtil(d)
 }
 
 function riskBadgeClass(level: string): string {

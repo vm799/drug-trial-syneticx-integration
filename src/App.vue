@@ -139,10 +139,10 @@
             <!-- Market Opportunities -->
             <div class="bg-green-50 p-4 rounded-lg border border-green-200">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-green-800">Market Opportunities</span>
-                <span class="text-2xl font-bold text-green-900">{{ metrics.opportunities }}</span>
+                <span class="text-sm font-medium text-black">Market Opportunities</span>
+                <span class="text-2xl font-bold text-black">{{ metrics.opportunities }}</span>
               </div>
-              <p class="text-xs text-green-600 leading-relaxed">
+              <p class="text-xs text-black leading-relaxed">
                 Generic/biosimilar opportunities from competitor patent expiries. 
                 <strong>Revenue potential</strong> through strategic market entry.
               </p>
@@ -151,10 +151,10 @@
             <!-- Total Revenue Monitored -->
             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-blue-800">Revenue Monitored</span>
-                <span class="text-xl font-bold text-blue-900">${{ formatBillions(metrics.totalRevenue) }}B</span>
+                <span class="text-sm font-medium text-black">Revenue Monitored</span>
+                <span class="text-xl font-bold text-black">{{ formatCurrency(metrics.totalRevenue) }}</span>
               </div>
-              <p class="text-xs text-blue-600 leading-relaxed">
+              <p class="text-xs text-black leading-relaxed">
                 Total pharmaceutical revenue under patent protection monitoring. 
                 <strong>Comprehensive coverage</strong> of market exposure.
               </p>
@@ -164,7 +164,7 @@
 
         <!-- Quick Actions -->
         <div class="p-6 border-b border-gray-200">
-          <h4 class="text-sm font-semibold text-gray-900 mb-3">Quick Actions</h4>
+          <h4 class="text-sm font-semibold text-black mb-3">Quick Actions</h4>
           <div class="space-y-2">
             <button @click="refreshAllData" :disabled="isLoading" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
               {{ isLoading ? 'Refreshing...' : 'Refresh All Data' }}
@@ -541,6 +541,7 @@ import InvestmentResearch from './components/InvestmentResearch.vue'
 import USPTOIntegration from './components/USPTOIntegration.vue'
 import ExecutiveReport from './components/ExecutiveReport.vue'
 import apiService from './services/api'
+import { formatCurrency, formatLargeNumber } from './utils/formatters'
 
 // Application State
 const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto' | 'executive'>('dashboard')

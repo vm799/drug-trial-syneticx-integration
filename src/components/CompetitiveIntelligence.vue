@@ -40,43 +40,43 @@
 			</div>
 			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
 				<div class="text-xs text-black font-medium">Total market cap</div>
-				<div class="text-2xl font-bold text-black">${{ (summary.totalMarketCap || 0).toLocaleString() }}</div>
+				<div class="text-2xl font-bold text-black">{{ formatCurrency(summary.totalMarketCap || 0) }}</div>
 			</div>
 			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
 				<div class="text-xs text-black font-medium">Pipeline assets</div>
-				<div class="text-2xl font-bold text-black">{{ (summary.totalPipelineAssets || 0).toLocaleString() }}</div>
+				<div class="text-2xl font-bold text-black">{{ formatLargeNumber(summary.totalPipelineAssets || 0) }}</div>
 			</div>
 			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
 				<div class="text-xs text-black font-medium">Threat breakdown</div>
-				<div class="text-sm">C {{ summary.threatSummary.critical }} · H {{ summary.threatSummary.high }} · M {{ summary.threatSummary.medium }} · L {{ summary.threatSummary.low }}</div>
+				<div class="text-sm text-black font-semibold">C {{ summary.threatSummary.critical }} · H {{ summary.threatSummary.high }} · M {{ summary.threatSummary.medium }} · L {{ summary.threatSummary.low }}</div>
 			</div>
 		</div>
 
-		<div class="bg-white rounded shadow overflow-hidden">
-			<div v-if="loading" class="p-4 animate-pulse text-sm text-gray-600">Loading competitors…</div>
+		<div class="bg-white rounded-xl shadow-xl border-2 border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300">
+			<div v-if="loading" class="p-4 animate-pulse text-sm text-black font-medium">Loading competitors…</div>
 			<table class="min-w-full text-sm">
-				<thead class="bg-gray-50">
+				<thead class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
 					<tr>
-						<th class="text-left px-4 py-2">Company</th>
-						<th class="text-left px-4 py-2">Threat</th>
-						<th class="text-left px-4 py-2">Market Cap</th>
-						<th class="text-left px-4 py-2">Pipeline</th>
-						<th class="text-left px-4 py-2">Patents</th>
-						<th class="text-left px-4 py-2">Last Analyzed</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Company</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Threat</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Market Cap</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Pipeline</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Patents</th>
+						<th class="text-left px-6 py-4 font-bold tracking-wider">Last Analyzed</th>
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="comp in competitors" :key="comp.companyInfo?.name" class="border-t">
-						<td class="px-4 py-2 font-medium">{{ comp.companyInfo?.name }}</td>
-						<td class="px-4 py-2"><span :class="threatClass(comp.overallThreat)" class="px-2 py-1 rounded text-xs">{{ comp.overallThreat }}</span> <span class="text-xs text-gray-500">({{ comp.threatScore }})</span></td>
-						<td class="px-4 py-2">${{ (comp.financialMetrics?.marketCap || 0).toLocaleString() }}</td>
-						<td class="px-4 py-2">{{ comp.pipelineAnalysis?.totalAssets || 0 }}</td>
-						<td class="px-4 py-2">{{ comp.patentPortfolio?.totalPatents || 0 }}</td>
-						<td class="px-4 py-2">{{ formatDate(comp.lastAnalyzed) }}</td>
+					<tr v-for="comp in competitors" :key="comp.companyInfo?.name" class="border-t border-gray-200 hover:bg-purple-50 transition-colors duration-200">
+						<td class="px-6 py-4 font-semibold text-black">{{ comp.companyInfo?.name }}</td>
+						<td class="px-6 py-4"><span :class="threatClass(comp.overallThreat)" class="px-3 py-1 rounded-full text-xs font-bold shadow-sm">{{ comp.overallThreat.toUpperCase() }}</span> <span class="text-xs text-black ml-2">({{ comp.threatScore }})</span></td>
+						<td class="px-6 py-4 font-bold text-black">{{ formatCurrency(comp.financialMetrics?.marketCap || 0) }}</td>
+						<td class="px-6 py-4 font-semibold text-black">{{ formatLargeNumber(comp.pipelineAnalysis?.totalAssets || 0) }}</td>
+						<td class="px-6 py-4 font-semibold text-black">{{ formatLargeNumber(comp.patentPortfolio?.totalPatents || 0) }}</td>
+						<td class="px-6 py-4 text-black">{{ formatDate(comp.lastAnalyzed) }}</td>
 					</tr>
 				</tbody>
 			</table>
-			<div v-if="!loading && competitors.length === 0" class="p-4 text-sm text-gray-600">No competitors found. Adjust threat level or sort options.</div>
+			<div v-if="!loading && competitors.length === 0" class="p-4 text-sm text-black">No competitors found. Adjust threat level or sort options.</div>
 		</div>
 	</div>
 </template>
@@ -85,6 +85,7 @@
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
 import { exportToCSV } from '../utils/export'
+import { formatCurrency, formatLargeNumber } from '../utils/formatters'
 
 const loading = ref(false)
 const error = ref('')
