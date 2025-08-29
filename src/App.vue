@@ -20,6 +20,19 @@
       </div>
     </header>
 
+    <!-- Desktop-first Navigation -->
+    <nav class="bg-white border-t border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex space-x-6 overflow-x-auto">
+          <button @click="activeTab = 'home'" :class="tabClass('home')" class="py-3 text-sm font-medium whitespace-nowrap">Home</button>
+          <button @click="activeTab = 'patent'" :class="tabClass('patent')" class="py-3 text-sm font-medium whitespace-nowrap">Patent Cliff</button>
+          <button @click="activeTab = 'competitive'" :class="tabClass('competitive')" class="py-3 text-sm font-medium whitespace-nowrap">Competitive Intel</button>
+          <button @click="activeTab = 'investment'" :class="tabClass('investment')" class="py-3 text-sm font-medium whitespace-nowrap">Investment Research</button>
+          <button @click="activeTab = 'uspto'" :class="tabClass('uspto')" class="py-3 text-sm font-medium whitespace-nowrap">USPTO</button>
+        </div>
+      </div>
+    </nav>
+
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Welcome Section -->
@@ -83,8 +96,8 @@
         </div>
       </div>
 
-      <!-- Main Features -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Home Tab -->
+      <div v-if="activeTab === 'home'" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- AI Research Assistant -->
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between mb-4">
@@ -191,6 +204,30 @@
           </div>
         </div>
       </div>
+
+      <!-- Patent Cliff Tab -->
+      <div v-if="activeTab === 'patent'" class="space-y-6">
+        <h3 class="text-lg font-semibold text-gray-900">Patent Cliff Monitoring</h3>
+        <PatentCliffMonitor />
+      </div>
+
+      <!-- Competitive Intelligence Tab -->
+      <div v-if="activeTab === 'competitive'" class="space-y-6">
+        <h3 class="text-lg font-semibold text-gray-900">Competitive Intelligence</h3>
+        <CompetitiveIntelligence />
+      </div>
+
+      <!-- Investment Research Tab -->
+      <div v-if="activeTab === 'investment'" class="space-y-6">
+        <h3 class="text-lg font-semibold text-gray-900">Investment Research Analytics</h3>
+        <InvestmentResearch />
+      </div>
+
+      <!-- USPTO Tab -->
+      <div v-if="activeTab === 'uspto'" class="space-y-6">
+        <h3 class="text-lg font-semibold text-gray-900">USPTO Integration</h3>
+        <USPTOIntegration />
+      </div>
     </main>
 
     <!-- Footer -->
@@ -208,6 +245,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import ResearchResults from './components/ResearchResults.vue'
+import PatentCliffMonitor from './components/PatentCliffMonitor.vue'
+import CompetitiveIntelligence from './components/CompetitiveIntelligence.vue'
+import InvestmentResearch from './components/InvestmentResearch.vue'
+import USPTOIntegration from './components/USPTOIntegration.vue'
 
 // Reactive state
 const chatMessage = ref('')
@@ -228,6 +269,14 @@ const systemMetrics = ref({
   responseTime: 0,
   successRate: 0
 })
+
+// Navigation state
+const activeTab = ref<'home' | 'patent' | 'competitive' | 'investment' | 'uspto'>('home')
+const tabClass = (tab: string) => (
+  activeTab.value === tab
+    ? 'border-b-2 border-blue-600 text-blue-700'
+    : 'text-gray-600 hover:text-gray-900'
+)
 
 // Methods
 const sendMessage = async () => {
