@@ -1,0 +1,11 @@
+companyName,symbol,marketCap,enterpriseValue,revenue,profitMargin,currentPrice,priceChange,volume,peRatio,debtToEquity,returnOnEquity,industry,sector
+PharmaCorp Inc.,PHAR,5000000000,5200000000,1000000000,0.15,50.00,2.50,1500000,25.5,0.3,0.18,Pharmaceuticals,Healthcare
+BioTech Ltd,BIO,2500000000,2600000000,500000000,0.12,35.00,1.75,800000,22.3,0.4,0.15,Biotechnology,Healthcare
+MediPharm Solutions,MEDI,1800000000,1850000000,400000000,0.10,28.50,1.20,600000,28.5,0.2,0.12,Pharmaceuticals,Healthcare
+HeartHealth Inc,HEART,3200000000,3300000000,750000000,0.14,42.00,2.10,1200000,24.8,0.3,0.16,Medical Devices,Healthcare
+NeuroTech Corp,NEURO,1200000000,1250000000,300000000,0.08,18.00,0.90,400000,30.0,0.5,0.10,Biotechnology,Healthcare
+ImmuneBoost Pharma,IMMU,2800000000,2900000000,650000000,0.13,38.50,1.85,950000,26.2,0.3,0.14,Pharmaceuticals,Healthcare
+Respire Therapeutics,RESP,1500000000,1550000000,350000000,0.09,22.00,1.10,500000,32.5,0.4,0.11,Pharmaceuticals,Healthcare
+MetaboHealth Inc,META,900000000,950000000,200000000,0.06,15.00,0.75,300000,35.0,0.6,0.08,Biotechnology,Healthcare
+GenEdit Solutions,GENE,800000000,850000000,180000000,0.05,12.50,0.60,250000,40.0,0.7,0.07,Biotechnology,Healthcare
+GlobalVax Corp,VAX,1100000000,1150000000,250000000,0.07,16.50,0.80,350000,33.0,0.5,0.09,Biotechnology,Healthcare

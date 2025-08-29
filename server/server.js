@@ -34,6 +34,7 @@ import patentRoutes from './routes/patents.js'
 import competitiveIntelligenceRoutes from './routes/competitive-intelligence.js'
 import investmentResearchRoutes from './routes/investment-research.js'
 import researchInsightsRoutes from './routes/research-insights.js'
+import dataManagementRoutes from './routes/data-management.js'
 
 const app = express()
 const server = createServer(app)
@@ -126,6 +127,7 @@ app.use('/api/patents', patentRoutes) // Patent cliff monitoring and USPTO integ
 app.use('/api/competitive-intelligence', competitiveIntelligenceRoutes) // Competitive intelligence automation
 app.use('/api/investment-research', investmentResearchRoutes) // Investment research analytics engine
 app.use('/api/research-insights', researchInsightsRoutes) // Comprehensive research insights and analysis
+app.use('/api/data-management', dataManagementRoutes) // Data source management and knowledge graph operations
 
 // Serve frontend (single-URL deployment)
 const __filename = fileURLToPath(import.meta.url)

@@ -106,6 +106,16 @@
               <span>Research Insights</span>
             </span>
           </button>
+          <button 
+            @click="activeTab = 'data'" 
+            :class="enhancedTabClass('data')" 
+            class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          >
+            <span class="flex items-center space-x-2">
+              <span class="text-lg">📊</span>
+              <span>Data Management</span>
+            </span>
+          </button>
         </div>
       </div>
     </nav>
@@ -521,6 +531,27 @@
           </div>
           <ResearchInsights />
         </div>
+
+        <!-- Data Management Tab -->
+        <div v-if="activeTab === 'data'" class="space-y-8">
+          <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-xl p-8 text-white">
+            <h2 class="text-3xl font-bold mb-3">Data Management Center</h2>
+            <p class="text-emerald-100 text-lg mb-4">
+              Comprehensive data source management with file uploads, live data feeds, and multi-agent knowledge graph construction. 
+              Build sustainable data-driven insights from real sources.
+            </p>
+            <div class="bg-emerald-800/30 rounded-lg p-4 mt-6">
+              <h4 class="font-semibold mb-2">Data Capabilities:</h4>
+              <ul class="text-emerald-100 text-sm space-y-1">
+                <li>• File uploads (CSV, JSON, Excel) with automatic validation</li>
+                <li>• Live API data feeds with scheduled refresh</li>
+                <li>• Multi-agent knowledge graph construction</li>
+                <li>• Data quality monitoring and recommendations</li>
+              </ul>
+            </div>
+          </div>
+          <DataManagement />
+        </div>
       </main>
     </div>
 
@@ -572,11 +603,12 @@ import InvestmentResearch from './components/InvestmentResearch.vue'
 import USPTOIntegration from './components/USPTOIntegration.vue'
 import ExecutiveReport from './components/ExecutiveReport.vue'
 import ResearchInsights from './components/ResearchInsights.vue'
+import DataManagement from './components/DataManagement.vue'
 import apiService from './services/api'
 import { formatCurrency, formatLargeNumber } from './utils/formatters'
 
 // Application State
-const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto' | 'executive' | 'research'>('dashboard')
+const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'uspto' | 'executive' | 'research' | 'data'>('dashboard')
 const isLoading = ref(false)
 const systemStatus = ref('All Systems Operational')
 const chatMessage = ref('')
