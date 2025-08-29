@@ -13,14 +13,26 @@ class FinancialDataService {
     try {
       // Try Yahoo Finance first (free, no API key)
       const yahooData = await this.getYahooFinanceData(companyName)
-      if (yahooData) return yahooData
+      if (yahooData) {
+        yahooData.dataSource = 'REAL_YAHOO_FINANCE_API'
+        yahooData.dataQuality = 'verified'
+        yahooData.reason = 'Live financial data from Yahoo Finance'
+        return yahooData
+      }
 
       // Fallback to Alpha Vantage if key available
       if (this.alphaVantageKey) {
-        return await this.getAlphaVantageData(companyName)
+        const alphaData = await this.getAlphaVantageData(companyName)
+        if (alphaData) {
+          alphaData.dataSource = 'REAL_ALPHA_VANTAGE_API'
+          alphaData.dataQuality = 'verified'
+          alphaData.reason = 'Live financial data from Alpha Vantage'
+          return alphaData
+        }
       }
 
       // Return mock data if no external sources available
+      logger.warn(`No real financial data available for ${companyName}, using mock data`)
       return this.getMockFinancialData(companyName)
     } catch (error) {
       logger.error('Financial data fetch error:', error)
@@ -108,7 +120,10 @@ class FinancialDataService {
       profitMargin: (Math.random() * 0.3) + 0.1,
       currentPrice: (Math.random() * 200) + 50,
       source: 'Mock Data',
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      dataSource: 'MOCK_DATA',
+      dataQuality: 'demo_only',
+      reason: 'No real financial data available - using generated demo data'
     }
     
     mockData.priceChange = mockData.currentPrice * (Math.random() * 0.1 - 0.05)

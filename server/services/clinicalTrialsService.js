@@ -88,7 +88,8 @@ class ClinicalTrialsService {
         state: trial.locationState || trial.LocationState || 'Unknown',
         city: trial.locationCity || trial.LocationCity || 'Unknown'
       },
-      source: 'ClinicalTrials.gov',
+      source: 'REAL_CLINICALTRIALS_GOV_API',
+      dataQuality: 'verified',
       lastUpdated: new Date().toISOString()
     }
   }
@@ -110,7 +111,9 @@ class ClinicalTrialsService {
         interventionName: query,
         outcomeMeasures: ['Overall Survival', 'Progression-Free Survival', 'Response Rate'],
         location: { country: 'United States', state: 'California', city: 'Los Angeles' },
-        source: 'Mock Data'
+        source: 'MOCK_DATA',
+        dataQuality: 'demo_only',
+        reason: 'ClinicalTrials.gov API failed - using demo data'
       },
       {
         nctId: 'NCT87654321',
@@ -127,7 +130,9 @@ class ClinicalTrialsService {
         interventionName: query,
         outcomeMeasures: ['Safety Profile', 'Efficacy Measures', 'Quality of Life'],
         location: { country: 'United States', state: 'New York', city: 'New York' },
-        source: 'Mock Data'
+        source: 'MOCK_DATA',
+        dataQuality: 'demo_only',
+        reason: 'ClinicalTrials.gov API failed - using demo data'
       }
     ]
     
@@ -137,7 +142,7 @@ class ClinicalTrialsService {
   getMockTrialDetails(nctId) {
     return {
       nctId,
-      title: `Comprehensive Study of Novel Therapeutic Agent`,
+      title: 'Comprehensive Study of Novel Therapeutic Agent',
       phase: 'II',
       status: 'Recruiting',
       sponsor: 'MockPharma Inc.',
@@ -150,7 +155,9 @@ class ClinicalTrialsService {
       interventionName: 'Novel Therapeutic Agent',
       outcomeMeasures: ['Overall Survival', 'Progression-Free Survival', 'Response Rate', 'Safety Profile'],
       location: { country: 'United States', state: 'California', city: 'Los Angeles' },
-      source: 'Mock Data',
+      source: 'MOCK_DATA',
+      dataQuality: 'demo_only',
+      reason: 'ClinicalTrials.gov API failed - using demo data',
       lastUpdated: new Date().toISOString()
     }
   }

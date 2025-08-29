@@ -81,7 +81,10 @@ router.get('/dashboard', (req, res, next) => {
           recentActivities: [
             { type: 'acquisition', description: 'Acquired BioTech startup for $2.1B', date: new Date() }
           ],
-          lastAnalyzed: new Date()
+          lastAnalyzed: new Date(),
+          dataSource: 'MOCK_DATA',
+          dataQuality: 'demo_only',
+          reason: 'No real competitive intelligence data available'
         },
         {
           _id: 'comp2',
@@ -94,7 +97,10 @@ router.get('/dashboard', (req, res, next) => {
           recentActivities: [
             { type: 'partnership', description: 'Strategic partnership with TechMed', date: new Date() }
           ],
-          lastAnalyzed: new Date()
+          lastAnalyzed: new Date(),
+          dataSource: 'MOCK_DATA',
+          dataQuality: 'demo_only',
+          reason: 'No real competitive intelligence data available'
         },
         {
           _id: 'comp3',
@@ -107,7 +113,10 @@ router.get('/dashboard', (req, res, next) => {
           recentActivities: [
             { type: 'fda_approval', description: 'FDA approval for breakthrough therapy', date: new Date() }
           ],
-          lastAnalyzed: new Date()
+          lastAnalyzed: new Date(),
+          dataSource: 'MOCK_DATA',
+          dataQuality: 'demo_only',
+          reason: 'No real competitive intelligence data available'
         }
       ]
     }
@@ -185,7 +194,12 @@ router.get('/dashboard', (req, res, next) => {
       threatSummary,
       totalMarketCap,
       totalPipelineAssets,
-      recentActivities: recentActivities.slice(0, 10)
+      recentActivities: recentActivities.slice(0, 10),
+      dataSource: enhancedCompetitors.some(c => c.dataSource === 'REAL_FINANCIAL_API') ? 'MIXED' : 'MOCK_DATA',
+      dataQuality: enhancedCompetitors.some(c => c.dataQuality === 'verified') ? 'mixed' : 'demo_only',
+      reason: enhancedCompetitors.some(c => c.dataSource === 'REAL_FINANCIAL_API') ? 
+        'Live financial data available for some companies, competitive intelligence is demo data' : 
+        'All data is demo data for demonstration purposes'
     }
 
     logger.apiUsage(req.user._id, 'competitive_intelligence_dashboard', 0, 0)
