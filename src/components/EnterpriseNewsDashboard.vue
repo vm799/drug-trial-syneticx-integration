@@ -122,6 +122,7 @@
             <option value="pharmaceutical">Pharmaceutical</option>
             <option value="patents">Patents & IP</option>
             <option value="clinicalTrials">Clinical Trials</option>
+            <option value="regulatory">Regulatory & FDA</option>
             <option value="financial">Financial & Market</option>
           </select>
           <select
@@ -499,6 +500,7 @@ const getCategoryIcon = (category) => {
     pharmaceutical: '💊',
     patents: '🔒',
     clinicalTrials: '🧬',
+    regulatory: '⚖️',
     financial: '💰'
   }
   return icons[category] || '📰'

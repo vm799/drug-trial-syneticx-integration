@@ -273,7 +273,7 @@ const selectedNews = ref(null)
 const tickerContainer = ref(null)
 
 // Settings
-const selectedCategories = ref(['pharmaceutical', 'patents', 'clinicalTrials', 'financial'])
+const selectedCategories = ref(['pharmaceutical', 'patents', 'clinicalTrials', 'regulatory', 'financial'])
 const minRelevance = ref('medium')
 const tickerSpeed = ref(3)
 
@@ -282,6 +282,7 @@ const availableCategories = [
   { value: 'pharmaceutical', label: 'Pharmaceutical' },
   { value: 'patents', label: 'Patents & IP' },
   { value: 'clinicalTrials', label: 'Clinical Trials' },
+  { value: 'regulatory', label: 'Regulatory & FDA' },
   { value: 'financial', label: 'Financial & Market' }
 ]
 
@@ -339,6 +340,7 @@ const getCategoryIcon = (category) => {
     pharmaceutical: '💊',
     patents: '🔒',
     clinicalTrials: '🧬',
+    regulatory: '⚖️',
     financial: '💰'
   }
   return icons[category] || '📰'

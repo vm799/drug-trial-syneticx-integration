@@ -35,6 +35,7 @@ const categories = [
   { value: 'pharmaceutical', label: 'Pharmaceutical' },
   { value: 'patents', label: 'Patents & IP' },
   { value: 'clinicalTrials', label: 'Clinical Trials' },
+  { value: 'regulatory', label: 'Regulatory & FDA' },
   { value: 'financial', label: 'Financial & Market' }
 ]
 

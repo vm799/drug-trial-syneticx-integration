@@ -39,6 +39,27 @@ class RSSFeedService {
           category: 'pharmaceutical',
           description: 'Industry insights and analysis',
           updateInterval: 3600000 // 1 hour
+        },
+        {
+          name: 'Pharmaphorum',
+          url: 'https://pharmaphorum.com/feed/',
+          category: 'pharmaceutical',
+          description: 'Pharmaceutical industry insights and trends',
+          updateInterval: 3600000 // 1 hour
+        },
+        {
+          name: 'Pharmaceutical Executive',
+          url: 'https://www.pharmexec.com/rss',
+          category: 'pharmaceutical',
+          description: 'Executive insights and strategic planning',
+          updateInterval: 7200000 // 2 hours
+        },
+        {
+          name: 'PharmTech News',
+          url: 'https://www.pharmtech.com/rss',
+          category: 'pharmaceutical',
+          description: 'Pharmaceutical technology and manufacturing',
+          updateInterval: 7200000 // 2 hours
         }
       ],
       patents: [
@@ -50,17 +71,17 @@ class RSSFeedService {
           updateInterval: 7200000 // 2 hours
         },
         {
-          name: 'Managing IP',
-          url: 'https://www.managingip.com/rss',
+          name: 'USPTO News',
+          url: 'https://www.uspto.gov/rss/feed.xml',
           category: 'patents',
-          description: 'Intellectual property news',
+          description: 'Official USPTO announcements and updates',
           updateInterval: 7200000 // 2 hours
         },
         {
-          name: 'Patent Docs',
-          url: 'https://patentdocs.typepad.com/patent_docs/atom.xml',
+          name: 'Patent Baristas',
+          url: 'https://patentbaristas.com/feed/',
           category: 'patents',
-          description: 'Patent litigation, IP strategy',
+          description: 'Patent litigation and IP strategy',
           updateInterval: 7200000 // 2 hours
         }
       ],
@@ -87,13 +108,43 @@ class RSSFeedService {
           updateInterval: 3600000 // 1 hour
         }
       ],
+      regulatory: [
+        {
+          name: 'FDA News',
+          url: 'https://www.fda.gov/feed/news-events-press-releases.xml',
+          category: 'regulatory',
+          description: 'Official FDA announcements and updates',
+          updateInterval: 1800000 // 30 minutes
+        },
+        {
+          name: 'FDA Warning Letters',
+          url: 'https://www.fda.gov/feed/inspections-compliance-enforcement-and-criminal-investigations.xml',
+          category: 'regulatory',
+          description: 'FDA compliance and enforcement actions',
+          updateInterval: 3600000 // 1 hour
+        },
+        {
+          name: 'FDA Law Blog',
+          url: 'https://www.fdalawblog.net/feed/',
+          category: 'regulatory',
+          description: 'Legal perspectives on FDA matters',
+          updateInterval: 7200000 // 2 hours
+        },
+        {
+          name: 'RAPS',
+          url: 'https://www.raps.org/news-and-articles/news-feed',
+          category: 'regulatory',
+          description: 'Regulatory Affairs Professional Society updates',
+          updateInterval: 3600000 // 1 hour
+        }
+      ],
       financial: [
         {
-          name: 'Reuters Health',
-          url: 'https://feeds.reuters.com/reuters/healthNews',
+          name: 'FiercePharma',
+          url: 'https://www.fiercepharma.com/rss/xml',
           category: 'financial',
-          description: 'Industry financial news',
-          updateInterval: 1800000 // 30 minutes
+          description: 'Pharmaceutical industry financial news',
+          updateInterval: 3600000 // 1 hour
         },
         {
           name: 'FierceBiotech',
@@ -242,6 +293,9 @@ class RSSFeedService {
         case 'clinicalTrials':
           extractedInfo = this.extractClinicalTrialInfo(title, description);
           break;
+        case 'regulatory':
+          extractedInfo = this.extractRegulatoryInfo(title, description);
+          break;
         case 'financial':
           extractedInfo = this.extractFinancialInfo(title, description);
           break;
@@ -382,6 +436,53 @@ class RSSFeedService {
       relevance,
       phases,
       conditions
+    };
+  }
+
+  extractRegulatoryInfo(title, description) {
+    const text = `${title} ${description}`.toLowerCase();
+    
+    let type = 'general';
+    let relevance = 'high'; // Regulatory news is typically high priority
+    let regulatoryAgencies = [];
+    let compliance = false;
+    
+    // Detect FDA actions
+    if (text.includes('fda') || text.includes('food and drug administration')) {
+      regulatoryAgencies.push('FDA');
+      relevance = 'high';
+    }
+    
+    // Detect warning letters
+    if (text.includes('warning letter') || text.includes('violation') || text.includes('compliance')) {
+      type = 'compliance_violation';
+      compliance = true;
+      relevance = 'high';
+    }
+    
+    // Detect regulatory approvals
+    if (text.includes('approval') || text.includes('clearance') || text.includes('authorization')) {
+      type = 'regulatory_approval';
+      relevance = 'high';
+    }
+    
+    // Detect guidance documents
+    if (text.includes('guidance') || text.includes('draft guidance') || text.includes('final guidance')) {
+      type = 'regulatory_guidance';
+      relevance = 'high';
+    }
+    
+    // Detect enforcement actions
+    if (text.includes('enforcement') || text.includes('recall') || text.includes('suspension')) {
+      type = 'enforcement_action';
+      relevance = 'high';
+    }
+    
+    return {
+      type,
+      relevance,
+      regulatoryAgencies,
+      compliance
     };
   }
 
