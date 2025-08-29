@@ -582,6 +582,12 @@
           </div>
           <DataManagement />
         </div>
+
+        <!-- Breaking News Ticker -->
+        <BreakingNewsTicker 
+          :news="newsItems" 
+          @navigate-to-news="navigateToNews"
+        />
       </main>
     </div>
 
@@ -634,6 +640,7 @@ import USPTOIntegration from './components/USPTOIntegration.vue'
 import ExecutiveReport from './components/ExecutiveReport.vue'
 import ResearchInsights from './components/ResearchInsights.vue'
 import RSSNewsFeed from './components/RSSNewsFeed.vue'
+import BreakingNewsTicker from './components/BreakingNewsTicker.vue'
 import DataManagement from './components/DataManagement.vue'
 import apiService from './services/api'
 import { formatCurrency, formatLargeNumber } from './utils/formatters'
@@ -643,7 +650,11 @@ const activeTab = ref<'dashboard' | 'patent' | 'competitive' | 'investment' | 'u
 const isLoading = ref(false)
 const systemStatus = ref('All Systems Operational')
 const chatMessage = ref('')
-const aiResults = ref(null)
+
+// News State
+const newsItems = ref([])
+const newsLoading = ref(false)
+const newsError = ref(null)
 
 // Enterprise Metrics
 const metrics = reactive({
@@ -904,8 +915,50 @@ const loadInitialData = async () => {
 window.runKnowledgeGraphDemo = runKnowledgeGraphDemo
 window.setupDemoAuth = setupDemoAuth
 
+// Load RSS news feeds
+const loadNewsFeeds = async () => {
+  newsLoading.value = true
+  newsError.value = null
+  
+  try {
+    const response = await fetch('/api/rss-feeds/all?limit=50')
+    const data = await response.json()
+    
+    if (data.success) {
+      // Flatten all categories into single array for ticker
+      newsItems.value = Object.values(data.data).flat().flatMap(feed => 
+        feed.items?.map(item => ({
+          ...item,
+          id: `${feed.source}-${item.title}`.replace(/\s+/g, '-').toLowerCase(),
+          feedSource: feed.source,
+          feedCategory: feed.category
+        })) || []
+      )
+    } else {
+      throw new Error(data.error || 'Failed to load news')
+    }
+  } catch (err) {
+    newsError.value = err.message
+    console.error('Error loading RSS feeds:', err)
+  } finally {
+    newsLoading.value = false
+  }
+}
+
+// Navigate to news tab from ticker
+const navigateToNews = () => {
+  activeTab.value = 'news'
+}
+
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
+  await loadNewsFeeds()
+  
+  // Refresh news every 30 minutes
+  setInterval(() => {
+    loadNewsFeeds()
+  }, 30 * 60 * 1000)
+
   checkSystemStatus()
   loadInitialData()
   console.log('🚀 Competitive Medical Intelligence AI Platform Loaded')
