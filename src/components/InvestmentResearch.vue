@@ -25,7 +25,10 @@
 			<label class="inline-flex items-center text-sm"><input type="checkbox" v-model="includeScenarios" class="mr-2"/>Include scenarios</label>
 		</div>
 
-		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm">{{ error }}</div>
+		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm flex items-center justify-between">
+			<span>{{ error }}</span>
+			<button class="px-3 py-1 bg-red-600 text-white rounded text-xs" @click="runAnalysis">Retry</button>
+		</div>
 
 		<div v-if="result" class="space-y-4">
 			<div class="bg-white p-4 rounded shadow">

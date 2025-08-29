@@ -20,7 +20,10 @@
 			<button @click="search" :disabled="loading || !query" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Searching...' : 'Search' }}</button>
 		</div>
 
-		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm">{{ error }}</div>
+		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm flex items-center justify-between">
+			<span>{{ error }}</span>
+			<button class="px-3 py-1 bg-red-600 text-white rounded text-xs" @click="search">Retry</button>
+		</div>
 
 		<div class="bg-white rounded shadow overflow-hidden">
 			<div v-if="loading" class="p-4 animate-pulse text-sm text-gray-600">Searching USPTO…</div>
@@ -42,7 +45,9 @@
 					</tr>
 				</tbody>
 			</table>
-			<div v-if="!loading && results.length === 0" class="p-4 text-sm text-gray-500">Enter a query to search USPTO.</div>
+			<div v-if="!loading && results.length === 0" class="p-4 text-sm text-gray-600">
+				Enter a query to search USPTO. Try technology keywords or patent numbers.
+			</div>
 		</div>
 	</div>
 </template>

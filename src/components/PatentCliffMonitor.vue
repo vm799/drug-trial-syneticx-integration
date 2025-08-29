@@ -36,7 +36,10 @@
 			<button @click="loadData" :disabled="loading" class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 text-sm">{{ loading ? 'Loading...' : 'Refresh' }}</button>
 		</div>
 
-		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm">{{ error }}</div>
+		<div v-if="error" class="p-3 bg-red-50 text-red-700 rounded text-sm flex items-center justify-between">
+			<span>{{ error }}</span>
+			<button class="px-3 py-1 bg-red-600 text-white rounded text-xs" @click="loadData">Retry</button>
+		</div>
 
 		<div v-if="summary" class="grid grid-cols-1 md:grid-cols-4 gap-4">
 			<div class="bg-white rounded shadow p-4">
@@ -81,7 +84,9 @@
 					</tr>
 				</tbody>
 			</table>
-			<div v-if="!loading && patents.length === 0" class="p-4 text-sm text-gray-500">No patents found for selected filters.</div>
+			<div v-if="!loading && patents.length === 0" class="p-4 text-sm text-gray-600">
+				No patents found. Try widening the timeframe or removing risk filters.
+			</div>
 		</div>
 	</div>
 </template>
