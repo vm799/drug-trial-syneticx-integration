@@ -1,13 +1,13 @@
 <template>
 	<div class="space-y-4">
-		<div class="sticky top-0 z-10 bg-indigo-50/60 backdrop-blur supports-[backdrop-filter]:bg-indigo-50/40 border rounded p-3 flex flex-wrap items-start gap-3">
+		<div class="sticky top-0 z-10 bg-gradient-to-r from-purple-50 to-purple-100 backdrop-blur border-2 border-purple-200 rounded-xl shadow-lg p-4 flex flex-wrap items-start gap-4">
 			<div class="flex-1">
-				<h3 class="text-xl font-semibold text-gray-900">Competitive Intelligence</h3>
-				<p class="text-sm text-gray-600">Monitor competitors, threat levels, market cap, and pipelines.</p>
+				<h3 class="text-xl font-semibold text-black">Competitive Intelligence AI</h3>
+				<p class="text-sm text-black">Monitor competitors, threat levels, market cap, and pipelines.</p>
 			</div>
 			<div>
-				<label class="block text-xs font-medium text-gray-600 mb-1">Threat level</label>
-				<select v-model="threatLevel" class="border rounded px-3 py-2 text-sm">
+				<label class="block text-xs font-medium text-black mb-1">Threat level</label>
+				<select v-model="threatLevel" class="border rounded px-3 py-2 text-sm text-black bg-white border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
 					<option value="">All</option>
 					<option value="critical">Critical</option>
 					<option value="high">High</option>
@@ -16,8 +16,8 @@
 				</select>
 			</div>
 			<div>
-				<label class="block text-xs font-medium text-gray-600 mb-1">Sort by</label>
-				<select v-model="sortBy" class="border rounded px-3 py-2 text-sm">
+				<label class="block text-xs font-medium text-black mb-1">Sort by</label>
+				<select v-model="sortBy" class="border rounded px-3 py-2 text-sm text-black bg-white border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
 					<option value="threat">Threat</option>
 					<option value="marketCap">Market Cap</option>
 					<option value="pipeline">Pipeline</option>
@@ -34,20 +34,20 @@
 		</div>
 
 		<div v-if="summary" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-			<div class="bg-white rounded shadow p-4">
-				<div class="text-xs text-gray-500">Total competitors</div>
-				<div class="text-2xl font-semibold">{{ summary.totalCompetitors }}</div>
+			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
+				<div class="text-xs text-black font-medium">Total competitors</div>
+				<div class="text-2xl font-bold text-black">{{ summary.totalCompetitors }}</div>
 			</div>
-			<div class="bg-white rounded shadow p-4">
-				<div class="text-xs text-gray-500">Total market cap</div>
-				<div class="text-2xl font-semibold">${{ (summary.totalMarketCap || 0).toLocaleString() }}</div>
+			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
+				<div class="text-xs text-black font-medium">Total market cap</div>
+				<div class="text-2xl font-bold text-black">${{ (summary.totalMarketCap || 0).toLocaleString() }}</div>
 			</div>
-			<div class="bg-white rounded shadow p-4">
-				<div class="text-xs text-gray-500">Pipeline assets</div>
-				<div class="text-2xl font-semibold">{{ (summary.totalPipelineAssets || 0).toLocaleString() }}</div>
+			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
+				<div class="text-xs text-black font-medium">Pipeline assets</div>
+				<div class="text-2xl font-bold text-black">{{ (summary.totalPipelineAssets || 0).toLocaleString() }}</div>
 			</div>
-			<div class="bg-white rounded shadow p-4">
-				<div class="text-xs text-gray-500">Threat breakdown</div>
+			<div class="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200">
+				<div class="text-xs text-black font-medium">Threat breakdown</div>
 				<div class="text-sm">C {{ summary.threatSummary.critical }} · H {{ summary.threatSummary.high }} · M {{ summary.threatSummary.medium }} · L {{ summary.threatSummary.low }}</div>
 			</div>
 		</div>
