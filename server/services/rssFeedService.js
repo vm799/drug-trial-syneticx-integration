@@ -276,12 +276,17 @@ class RSSFeedService {
 
   processRSSItem(item, category) {
     try {
+      if (!item || typeof item !== 'object') {
+        logger.warn('Invalid RSS item:', item);
+        return null;
+      }
+      
       // Handle different RSS item formats
-      const title = item.title || item['dc:title'] || 'No Title';
-      const description = item.description || item.summary || item['content:encoded'] || 'No description available';
-      const link = item.link || item['feedburner:origLink'] || '#';
-      const pubDate = item.pubDate || item.published || item.updated || new Date().toISOString();
-      const author = item.author || item['dc:creator'] || 'Unknown Author';
+      const title = this.extractValue(item.title || item['dc:title'] || 'No Title');
+      const description = this.extractValue(item.description || item.summary || item['content:encoded'] || 'No description available');
+      const link = this.extractValue(item.link || item['feedburner:origLink'] || '#');
+      const pubDate = this.extractValue(item.pubDate || item.published || item.updated || new Date().toISOString());
+      const author = this.extractValue(item.author || item['dc:creator'] || 'Unknown Author');
       
       // Extract relevant information based on category
       let extractedInfo = {};
@@ -306,16 +311,24 @@ class RSSFeedService {
           extractedInfo = { type: 'general', relevance: 'medium' };
       }
 
-      return {
+      const processedItem = {
         title: this.cleanText(title),
         description: this.cleanText(description),
-        link: link,
-        pubDate: pubDate,
-        author: author,
+        link: String(link || '#'),
+        pubDate: String(pubDate),
+        author: this.cleanText(author),
         category: category,
         extractedInfo: extractedInfo,
         relevance: extractedInfo.relevance || 'medium'
       };
+      
+      // Validate the processed item
+      if (!processedItem.title || processedItem.title.trim() === '' || processedItem.title === 'No Title') {
+        logger.warn('Skipping RSS item with invalid title');
+        return null;
+      }
+      
+      return processedItem;
     } catch (error) {
       logger.error('Error processing RSS item:', error);
       return null;
@@ -528,11 +541,33 @@ class RSSFeedService {
     };
   }
 
+  extractValue(value) {
+    if (!value) return '';
+    
+    // Handle objects that might contain text values
+    if (typeof value === 'object' && value !== null) {
+      if (value['#text']) {
+        return String(value['#text']);
+      } else if (value._) {
+        return String(value._);
+      } else if (Array.isArray(value)) {
+        return value.length > 0 ? String(value[0]) : '';
+      } else {
+        return String(value);
+      }
+    }
+    
+    return String(value);
+  }
+
   cleanText(text) {
     if (!text) return '';
     
+    // Ensure text is a string
+    let textStr = this.extractValue(text);
+    
     // Remove HTML tags
-    let cleaned = text.replace(/<[^>]*>/g, '');
+    let cleaned = textStr.replace(/<[^>]*>/g, '');
     
     // Decode HTML entities
     cleaned = cleaned.replace(/&amp;/g, '&');
@@ -540,6 +575,7 @@ class RSSFeedService {
     cleaned = cleaned.replace(/&gt;/g, '>');
     cleaned = cleaned.replace(/&quot;/g, '"');
     cleaned = cleaned.replace(/&#39;/g, "'");
+    cleaned = cleaned.replace(/&#038;/g, '&');
     
     // Clean up whitespace
     cleaned = cleaned.replace(/\s+/g, ' ').trim();
