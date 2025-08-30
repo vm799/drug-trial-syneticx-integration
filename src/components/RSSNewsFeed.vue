@@ -64,32 +64,64 @@ const loadFeeds = async () => {
   error.value = null
   
   try {
+    const currentHost = window.location.hostname
+    const currentProtocol = window.location.protocol
+    const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
+      'http://localhost:3001' : 
+      `${currentProtocol}//${currentHost}`
+    
     const url = selectedCategory.value === 'all' 
-      ? '/api/rss-feeds/all'
-      : `/api/rss-feeds/category/${selectedCategory.value}`
+      ? `${backendUrl}/api/rss-feeds/all`
+      : `${backendUrl}/api/rss-feeds/category/${selectedCategory.value}`
+    
+    console.log('Loading RSS feeds from:', url)
     
     const response = await fetch(url)
     const data = await response.json()
     
+    console.log('RSS data loaded:', data)
+    
     if (data.success) {
       if (selectedCategory.value === 'all') {
         // Flatten all categories into single array
-        news.value = Object.values(data.data).flat().flatMap(feed => 
-          feed.items?.map(item => ({
-            ...item,
-            feedSource: feed.source,
-            feedCategory: feed.category
-          })) || []
-        )
+        const allItems = []
+        Object.values(data.data).forEach(categoryFeeds => {
+          if (Array.isArray(categoryFeeds)) {
+            categoryFeeds.forEach(feed => {
+              if (feed.items && Array.isArray(feed.items)) {
+                feed.items.forEach(item => {
+                  if (item && item.title) {
+                    allItems.push({
+                      ...item,
+                      feedSource: feed.source,
+                      feedCategory: feed.category
+                    })
+                  }
+                })
+              }
+            })
+          }
+        })
+        news.value = allItems
       } else {
         // Single category
-        news.value = data.data.flatMap(feed => 
-          feed.items?.map(item => ({
-            ...item,
-            feedSource: feed.source,
-            feedCategory: feed.category
-          })) || []
-        )
+        const categoryItems = []
+        if (Array.isArray(data.data)) {
+          data.data.forEach(feed => {
+            if (feed.items && Array.isArray(feed.items)) {
+              feed.items.forEach(item => {
+                if (item && item.title) {
+                  categoryItems.push({
+                    ...item,
+                    feedSource: feed.source,
+                    feedCategory: feed.category
+                  })
+                }
+              })
+            }
+          })
+        }
+        news.value = categoryItems
       }
     } else {
       throw new Error(data.error || 'Failed to load news')
@@ -97,6 +129,27 @@ const loadFeeds = async () => {
   } catch (err) {
     error.value = err.message
     console.error('Error loading RSS feeds:', err)
+    // Set demo data if RSS fails
+    news.value = [
+      {
+        title: 'FDA Approves New Cancer Treatment',
+        description: 'Breakthrough therapy shows significant improvement in patient outcomes',
+        link: '#',
+        pubDate: new Date().toISOString(),
+        feedSource: 'Demo News',
+        feedCategory: 'pharmaceutical',
+        relevance: 'high'
+      },
+      {
+        title: 'Major Patent Expires Next Month',
+        description: 'Billion-dollar drug loses exclusivity, opening market to generics',
+        link: '#',
+        pubDate: new Date().toISOString(),
+        feedSource: 'Demo News',
+        feedCategory: 'patents',
+        relevance: 'high'
+      }
+    ]
   } finally {
     loading.value = false
   }
@@ -104,7 +157,13 @@ const loadFeeds = async () => {
 
 const refreshFeeds = async () => {
   try {
-    const response = await fetch('/api/rss-feeds/refresh', { method: 'POST' })
+    const currentHost = window.location.hostname
+    const currentProtocol = window.location.protocol
+    const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
+      'http://localhost:3001' : 
+      `${currentProtocol}//${currentHost}`
+    
+    const response = await fetch(`${backendUrl}/api/rss-feeds/refresh`, { method: 'POST' })
     const data = await response.json()
     
     if (data.success) {
@@ -117,7 +176,13 @@ const refreshFeeds = async () => {
 
 const loadTrendingTopics = async () => {
   try {
-    const response = await fetch('/api/rss-feeds/trending?timeframe=24h&limit=20')
+    const currentHost = window.location.hostname
+    const currentProtocol = window.location.protocol
+    const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
+      'http://localhost:3001' : 
+      `${currentProtocol}//${currentHost}`
+    
+    const response = await fetch(`${backendUrl}/api/rss-feeds/trending?timeframe=24h&limit=20`)
     const data = await response.json()
     
     if (data.success) {

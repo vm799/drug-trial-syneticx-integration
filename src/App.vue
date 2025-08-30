@@ -739,11 +739,15 @@ const formatTime = (timestamp: Date) => {
   return `${Math.floor(hours / 24)} days ago`
 }
 
+// AI Results State
+const aiResults = ref(null)
+
 const sendMessage = async () => {
   if (!chatMessage.value.trim()) return
   
   isLoading.value = true
   const message = chatMessage.value
+  chatMessage.value = ''
   
   try {
     const currentHost = window.location.hostname
@@ -751,6 +755,8 @@ const sendMessage = async () => {
     const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
       'http://localhost:3001' : 
       `${currentProtocol}//${currentHost}`
+    
+    console.log('Sending AI query:', message)
     
     const response = await fetch(`${backendUrl}/api/chat`, {
       method: 'POST',
@@ -768,19 +774,38 @@ const sendMessage = async () => {
 
     if (response.ok) {
       const data = await response.json()
+      console.log('AI Response received:', data)
       
-      aiResults.value = {
-        researchInsights: data.researchInsights || null,
-        trialMatches: data.trialMatches || null,
-        explanation: data.explanation || null
+      // Handle the demo response format from chat.js
+      if (data.summary) {
+        aiResults.value = {
+          researchInsights: `# ${message} Analysis\n\n${data.summary}\n\n## Key Findings:\n${data.keyFindings ? data.keyFindings.map(finding => `- ${finding}`).join('\n') : ''}`,
+          trialMatches: data.clinicalTrials ? `# Clinical Trials\n\n${data.clinicalTrials.map(trial => `**${trial.title}**\n- Phase: ${trial.phase}\n- Status: ${trial.status}\n- Participants: ${trial.participants}\n- Summary: ${trial.summary}`).join('\n\n')}` : null,
+          explanation: data.researchPapers ? `# Research Papers\n\n${data.researchPapers.map(paper => `**${paper.title}**\n- Authors: ${paper.authors}\n- Journal: ${paper.journal} (${paper.year})\n- DOI: ${paper.doi}\n- Summary: ${paper.summary}`).join('\n\n')}` : null
+        }
+      } else {
+        aiResults.value = {
+          researchInsights: data.researchInsights || null,
+          trialMatches: data.trialMatches || null,
+          explanation: data.explanation || null
+        }
       }
     } else {
       const errorData = await response.json()
       console.error('Chat API error:', errorData)
+      aiResults.value = {
+        researchInsights: `# Error\n\nFailed to get AI response: ${errorData.message || 'Unknown error'}`,
+        trialMatches: null,
+        explanation: null
+      }
     }
   } catch (error) {
     console.error('Chat error:', error)
-    aiResults.value = null
+    aiResults.value = {
+      researchInsights: `# Connection Error\n\nUnable to connect to AI service. Please check your connection and try again.`,
+      trialMatches: null,
+      explanation: null
+    }
   } finally {
     isLoading.value = false
   }
@@ -921,25 +946,70 @@ const loadNewsFeeds = async () => {
   newsError.value = null
   
   try {
-    const response = await fetch('/api/rss-feeds/all?limit=50')
+    const currentHost = window.location.hostname
+    const currentProtocol = window.location.protocol
+    const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
+      'http://localhost:3001' : 
+      `${currentProtocol}//${currentHost}`
+    
+    console.log('Loading RSS feeds from:', `${backendUrl}/api/rss-feeds/all`)
+    
+    const response = await fetch(`${backendUrl}/api/rss-feeds/all?limit=50`)
     const data = await response.json()
+    
+    console.log('RSS Response:', data)
     
     if (data.success) {
       // Flatten all categories into single array for ticker
-      newsItems.value = Object.values(data.data).flat().flatMap(feed => 
-        feed.items?.map(item => ({
-          ...item,
-          id: `${feed.source}-${item.title}`.replace(/\s+/g, '-').toLowerCase(),
-          feedSource: feed.source,
-          feedCategory: feed.category
-        })) || []
-      )
+      const allItems = []
+      Object.values(data.data).forEach(categoryFeeds => {
+        if (Array.isArray(categoryFeeds)) {
+          categoryFeeds.forEach(feed => {
+            if (feed.items && Array.isArray(feed.items)) {
+              feed.items.forEach(item => {
+                if (item && item.title) {
+                  allItems.push({
+                    ...item,
+                    id: `${feed.source}-${item.title}`.replace(/\s+/g, '-').toLowerCase(),
+                    feedSource: feed.source,
+                    feedCategory: feed.category
+                  })
+                }
+              })
+            }
+          })
+        }
+      })
+      
+      newsItems.value = allItems
+      console.log(`Loaded ${allItems.length} news items`)
     } else {
       throw new Error(data.error || 'Failed to load news')
     }
   } catch (err) {
     newsError.value = err.message
     console.error('Error loading RSS feeds:', err)
+    // Set fallback demo news
+    newsItems.value = [
+      {
+        id: 'demo-1',
+        title: 'FDA Approves New Alzheimer\'s Treatment',
+        description: 'Breakthrough therapy shows promising results in clinical trials',
+        link: '#',
+        pubDate: new Date().toISOString(),
+        feedSource: 'Demo News',
+        feedCategory: 'pharmaceutical'
+      },
+      {
+        id: 'demo-2', 
+        title: 'Patent Cliff Warning for Major Diabetes Drug',
+        description: 'Blockbuster medication faces generic competition next year',
+        link: '#',
+        pubDate: new Date().toISOString(),
+        feedSource: 'Demo News',
+        feedCategory: 'patents'
+      }
+    ]
   } finally {
     newsLoading.value = false
   }
