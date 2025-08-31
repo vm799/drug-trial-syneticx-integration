@@ -302,18 +302,30 @@ const getRelevanceScore = (relevance) => {
 
 // Methods
 const startTicker = () => {
-  if (isPaused.value) return
+  if (isPaused.value || !displayNews.value.length) return
   
-  const tickerWidth = tickerContainer.value?.scrollWidth || 0
-  const containerWidth = tickerContainer.value?.parentElement?.clientWidth || 0
+  const tickerElement = tickerContainer.value
+  const parentElement = tickerElement?.parentElement
   
+  if (!tickerElement || !parentElement) return
+  
+  const tickerWidth = tickerElement.scrollWidth
+  const containerWidth = parentElement.clientWidth
+  
+  // Only animate if content is wider than container
   if (tickerWidth > containerWidth) {
-    tickerPosition.value -= (tickerSpeed.value * 0.5)
+    // Smooth movement speed based on ticker speed setting
+    const moveSpeed = tickerSpeed.value * 0.8
+    tickerPosition.value -= moveSpeed
     
     // Reset position when ticker moves completely off screen
-    if (tickerPosition.value < -tickerWidth) {
-      tickerPosition.value = containerWidth
+    // Add some buffer to ensure seamless loop
+    if (tickerPosition.value <= -(tickerWidth + 50)) {
+      tickerPosition.value = containerWidth + 50
     }
+  } else {
+    // If content fits in container, center it
+    tickerPosition.value = 0
   }
 }
 
@@ -378,15 +390,31 @@ const formatDate = (dateString) => {
 
 // Animation loop
 let animationId = null
+let lastAnimationTime = 0
+const animationInterval = 50 // 50ms between updates (20 FPS for smooth movement)
 
 const startAnimation = () => {
   if (animationId) return
   
-  const animate = () => {
-    startTicker()
-    animationId = requestAnimationFrame(animate)
+  const animate = (currentTime) => {
+    // Throttle animation to prevent excessive updates
+    if (currentTime - lastAnimationTime >= animationInterval) {
+      try {
+        startTicker()
+        lastAnimationTime = currentTime
+      } catch (error) {
+        console.warn('Ticker animation error:', error)
+      }
+    }
+    
+    if (!isPaused.value) {
+      animationId = requestAnimationFrame(animate)
+    } else {
+      animationId = null
+    }
   }
-  animate()
+  
+  animationId = requestAnimationFrame(animate)
 }
 
 const stopAnimation = () => {
@@ -395,6 +423,15 @@ const stopAnimation = () => {
     animationId = null
   }
 }
+
+// Watch for pause state changes to properly manage animation
+watch(isPaused, (newValue) => {
+  if (newValue) {
+    stopAnimation()
+  } else {
+    startAnimation()
+  }
+})
 
 // Lifecycle
 onMounted(() => {

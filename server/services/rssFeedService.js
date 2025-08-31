@@ -73,6 +73,29 @@ class RSSFeedService {
           updateInterval: 3600000 // 1 hour
         },
         {
+          name: 'ClinicalTrials.gov - Terminated Studies',
+          url: 'https://clinicaltrials.gov/ct2/results/rss.xml?term=terminated&recrs=e&age_v=&gndr=&type=&rslt=&phase=&fund=&cond=&intr=&titles=&outc=&spons=&lead=&id=&cntry=&state=&city=&dist=&locn=&rsub=&strd_s=&strd_e=&prcd_s=&prcd_e=&sfpd_s=&sfpd_e=&rfpd_s=&rfpd_e=&lupd_s=&lupd_e=&sort=&lup_d=14',
+          category: 'clinicalTrials',
+          description: 'Recently terminated clinical trials',
+          updateInterval: 1800000, // 30 minutes - high priority for failures
+          priority: 'high'
+        },
+        {
+          name: 'ClinicalTrials.gov - Withdrawn Studies',
+          url: 'https://clinicaltrials.gov/ct2/results/rss.xml?term=withdrawn&recrs=e&age_v=&gndr=&type=&rslt=&phase=&fund=&cond=&intr=&titles=&outc=&spons=&lead=&id=&cntry=&state=&city=&dist=&locn=&rsub=&strd_s=&strd_e=&prcd_s=&prcd_e=&sfpd_s=&sfpd_e=&rfpd_s=&rfpd_e=&lupd_s=&lupd_e=&sort=&lup_d=14',
+          category: 'clinicalTrials',
+          description: 'Recently withdrawn clinical trials',
+          updateInterval: 1800000, // 30 minutes - high priority for failures
+          priority: 'high'
+        },
+        {
+          name: 'BioCentury Intelligence',
+          url: 'https://www.biocentury.com/rss',
+          category: 'clinicalTrials',
+          description: 'Clinical trial outcomes and pharmaceutical intelligence',
+          updateInterval: 1800000 // 30 minutes
+        },
+        {
           name: 'Nature Medicine',
           url: 'https://www.nature.com/nm.rss',
           category: 'clinicalTrials',
@@ -94,6 +117,30 @@ class RSSFeedService {
           category: 'regulatory',
           description: 'Government filings and regulatory news',
           updateInterval: 1800000 // 30 minutes
+        },
+        {
+          name: 'FDA Warning Letters RSS',
+          url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/warning-letters/rss.xml',
+          category: 'regulatory',
+          description: 'FDA Warning Letters and enforcement actions',
+          updateInterval: 900000, // 15 minutes - high priority
+          priority: 'high'
+        },
+        {
+          name: 'FDA Drug Recalls RSS',
+          url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls-market-withdrawals-safety-alerts/rss.xml',
+          category: 'regulatory',
+          description: 'FDA drug recalls and safety alerts',
+          updateInterval: 900000, // 15 minutes - high priority
+          priority: 'high'
+        },
+        {
+          name: 'FDA News & Events RSS',
+          url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-announcements/rss.xml',
+          category: 'regulatory',
+          description: 'FDA press announcements and regulatory updates',
+          updateInterval: 1800000, // 30 minutes
+          priority: 'high'
         },
         {
           name: 'Regulatory Focus',
@@ -427,31 +474,103 @@ class RSSFeedService {
     let relevance = 'medium';
     let phases = [];
     let conditions = [];
+    let companies = [];
+    let trialStatus = 'unknown';
+    let severity = 'medium';
     
     // Detect trial phases
-    if (text.includes('phase 1')) phases.push('phase_1');
-    if (text.includes('phase 2')) phases.push('phase_2');
-    if (text.includes('phase 3')) phases.push('phase_3');
-    if (text.includes('phase 4')) phases.push('phase_4');
+    if (text.includes('phase 1') || text.includes('phase i')) phases.push('phase_1');
+    if (text.includes('phase 2') || text.includes('phase ii')) phases.push('phase_2');
+    if (text.includes('phase 3') || text.includes('phase iii')) phases.push('phase_3');
+    if (text.includes('phase 4') || text.includes('phase iv')) phases.push('phase_4');
+    
+    // Detect failed/negative trials - HIGHEST PRIORITY
+    if (text.includes('failed') || text.includes('unsuccessful') || text.includes('did not meet') || 
+        text.includes('missed primary endpoint') || text.includes('negative results') || 
+        text.includes('futility') || text.includes('stopped for futility')) {
+      type = 'trial_failed';
+      relevance = 'high';
+      severity = 'high';
+      trialStatus = 'failed';
+    }
+    
+    // Detect terminated trials - HIGH PRIORITY
+    if (text.includes('terminated') || text.includes('discontinued') || text.includes('halted') || 
+        text.includes('suspended') || text.includes('stopped early')) {
+      type = 'trial_terminated';
+      relevance = 'high';
+      severity = 'high';
+      trialStatus = 'terminated';
+    }
+    
+    // Detect withdrawn trials - HIGH PRIORITY
+    if (text.includes('withdrawn') || text.includes('cancelled') || text.includes('canceled')) {
+      type = 'trial_withdrawn';
+      relevance = 'high';
+      severity = 'medium';
+      trialStatus = 'withdrawn';
+    }
+    
+    // Detect delayed trials
+    if (text.includes('delayed') || text.includes('postponed') || text.includes('enrollment challenges')) {
+      type = 'trial_delayed';
+      relevance = 'high';
+      severity = 'medium';
+      trialStatus = 'delayed';
+    }
+    
+    // Detect safety concerns
+    if (text.includes('safety concern') || text.includes('adverse event') || text.includes('safety review') || 
+        text.includes('data safety monitoring') || text.includes('dsmb')) {
+      type = 'trial_safety_concern';
+      relevance = 'high';
+      severity = 'high';
+    }
     
     // Detect trial status
-    if (text.includes('recruiting')) type = 'trial_recruiting';
-    if (text.includes('completed')) type = 'trial_completed';
-    if (text.includes('results')) type = 'trial_results';
+    if (text.includes('recruiting')) {
+      type = type === 'general' ? 'trial_recruiting' : type;
+      trialStatus = 'recruiting';
+    }
+    if (text.includes('completed')) {
+      type = type === 'general' ? 'trial_completed' : type;
+      trialStatus = 'completed';
+    }
+    if (text.includes('results')) {
+      type = type === 'general' ? 'trial_results' : type;
+    }
     
-    // Extract medical conditions
-    const conditionPatterns = ['cancer', 'diabetes', 'cardiovascular', 'neurological', 'respiratory'];
+    // Extract medical conditions (enhanced)
+    const conditionPatterns = [
+      'cancer', 'oncology', 'tumor', 'carcinoma', 'melanoma', 'lymphoma', 'leukemia',
+      'diabetes', 'cardiovascular', 'heart', 'stroke', 'hypertension',
+      'neurological', 'alzheimer', 'parkinson', 'multiple sclerosis', 'epilepsy',
+      'respiratory', 'asthma', 'copd', 'pneumonia',
+      'infectious disease', 'covid', 'hepatitis', 'hiv',
+      'autoimmune', 'rheumatoid arthritis', 'crohn', 'psoriasis'
+    ];
     conditions = conditionPatterns.filter(condition => text.includes(condition));
     
+    // Extract company names
+    const companyPatterns = [
+      'pfizer', 'moderna', 'johnson & johnson', 'j&j', 'merck', 'novartis', 'roche', 'genentech',
+      'bristol myers squibb', 'bms', 'abbvie', 'gilead', 'amgen', 'biogen', 'regeneron',
+      'eli lilly', 'lilly', 'glaxosmithkline', 'gsk', 'astrazeneca', 'sanofi', 'takeda'
+    ];
+    companies = companyPatterns.filter(company => text.includes(company));
+    
     if (phases.length > 0 || type !== 'general') {
-      relevance = 'high';
+      relevance = relevance === 'medium' ? 'high' : relevance;
     }
     
     return {
       type,
       relevance,
       phases,
-      conditions
+      conditions,
+      companies,
+      trialStatus,
+      severity
     };
   }
 
@@ -462,6 +581,8 @@ class RSSFeedService {
     let relevance = 'high'; // Regulatory news is typically high priority
     let regulatoryAgencies = [];
     let compliance = false;
+    let companies = [];
+    let severity = 'medium';
     
     // Detect FDA actions
     if (text.includes('fda') || text.includes('food and drug administration')) {
@@ -469,11 +590,34 @@ class RSSFeedService {
       relevance = 'high';
     }
     
-    // Detect warning letters
-    if (text.includes('warning letter') || text.includes('violation') || text.includes('compliance')) {
+    // Detect warning letters - HIGHEST PRIORITY
+    if (text.includes('warning letter') || text.includes('warning letters')) {
+      type = 'warning_letter';
+      compliance = true;
+      relevance = 'high';
+      severity = 'high';
+    }
+    
+    // Detect enforcement actions and violations
+    if (text.includes('violation') || text.includes('violations') || text.includes('non-compliance') || text.includes('noncompliance')) {
       type = 'compliance_violation';
       compliance = true;
       relevance = 'high';
+      severity = 'high';
+    }
+    
+    // Detect recalls - CRITICAL
+    if (text.includes('recall') || text.includes('recalls') || text.includes('withdrawn') || text.includes('withdrawal')) {
+      type = 'drug_recall';
+      relevance = 'high';
+      severity = 'critical';
+    }
+    
+    // Detect safety alerts
+    if (text.includes('safety alert') || text.includes('safety concern') || text.includes('adverse event')) {
+      type = 'safety_alert';
+      relevance = 'high';
+      severity = 'high';
     }
     
     // Detect regulatory approvals
@@ -489,16 +633,42 @@ class RSSFeedService {
     }
     
     // Detect enforcement actions
-    if (text.includes('enforcement') || text.includes('recall') || text.includes('suspension')) {
+    if (text.includes('enforcement') || text.includes('suspension') || text.includes('injunction') || text.includes('consent decree')) {
       type = 'enforcement_action';
       relevance = 'high';
+      severity = 'high';
     }
+    
+    // Detect clinical hold or trial suspension
+    if (text.includes('clinical hold') || text.includes('trial suspended') || text.includes('study suspended')) {
+      type = 'clinical_hold';
+      relevance = 'high';
+      severity = 'high';
+    }
+    
+    // Detect inspection findings
+    if (text.includes('inspection') || text.includes('form 483') || text.includes('observations')) {
+      type = 'inspection_findings';
+      compliance = true;
+      relevance = 'high';
+    }
+    
+    // Extract company names (enhanced list)
+    const companyPatterns = [
+      'pfizer', 'moderna', 'johnson & johnson', 'j&j', 'merck', 'novartis', 'roche', 'genentech',
+      'bristol myers squibb', 'bms', 'abbvie', 'gilead', 'amgen', 'biogen', 'regeneron',
+      'eli lilly', 'lilly', 'glaxosmithkline', 'gsk', 'astrazeneca', 'sanofi', 'takeda',
+      'celgene', 'vertex', 'alexion', 'incyte', 'illumina', 'danaher'
+    ];
+    companies = companyPatterns.filter(company => text.includes(company));
     
     return {
       type,
       relevance,
       regulatoryAgencies,
-      compliance
+      compliance,
+      companies,
+      severity
     };
   }
 
@@ -701,6 +871,16 @@ class RSSFeedService {
               category: 'pharmaceutical',
               extractedInfo: { type: 'mergers_acquisitions', relevance: 'high', companies: [], drugs: [], regulatory: false },
               relevance: 'high'
+            },
+            {
+              title: 'Pfizer Receives FDA Warning Letter Over Manufacturing Violations',
+              description: 'FDA issues warning letter to Pfizer facility citing multiple manufacturing violations and compliance issues.',
+              link: '#',
+              pubDate: new Date(Date.now() - 1800000).toISOString(),
+              author: 'Regulatory News',
+              category: 'pharmaceutical',
+              extractedInfo: { type: 'warning_letter', relevance: 'high', companies: ['pfizer'], severity: 'high', compliance: true },
+              relevance: 'high'
             }
           ]
         }
@@ -741,25 +921,65 @@ class RSSFeedService {
               category: 'clinicalTrials',
               extractedInfo: { type: 'trial_recruiting', relevance: 'high', phases: ['phase_3'], conditions: ['diabetes'] },
               relevance: 'high'
+            },
+            {
+              title: 'Moderna COVID-19 Trial Terminated Due to Safety Concerns',
+              description: 'Moderna announces early termination of Phase 2 COVID-19 vaccine trial following adverse events in multiple participants.',
+              link: '#',
+              pubDate: new Date(Date.now() - 900000).toISOString(),
+              author: 'BioCentury',
+              category: 'clinicalTrials',
+              extractedInfo: { type: 'trial_terminated', relevance: 'high', phases: ['phase_2'], companies: ['moderna'], trialStatus: 'terminated', severity: 'high' },
+              relevance: 'high'
+            },
+            {
+              title: 'Johnson & Johnson Alzheimer Drug Trial Fails to Meet Primary Endpoint',
+              description: 'J&J discontinues Phase 3 Alzheimer trial after drug failed to show statistically significant improvement over placebo.',
+              link: '#',
+              pubDate: new Date(Date.now() - 1800000).toISOString(),
+              author: 'FierceBiotech',
+              category: 'clinicalTrials',
+              extractedInfo: { type: 'trial_failed', relevance: 'high', phases: ['phase_3'], companies: ['johnson & johnson'], trialStatus: 'failed', severity: 'high' },
+              relevance: 'high'
             }
           ]
         }
       ],
       regulatory: [
         {
-          source: 'Regulatory Focus',
+          source: 'FDA Warning Letters',
           category: 'regulatory',
-          description: 'Regulatory Affairs Professional Society updates',
+          description: 'FDA Warning Letters and enforcement actions',
           lastUpdated: new Date().toISOString(),
           items: [
             {
-              title: 'FDA Issues New Guidance on Manufacturing Compliance',
-              description: 'The FDA releases comprehensive guidance on pharmaceutical manufacturing compliance requirements.',
+              title: 'FDA Issues Warning Letter to Novartis Over Data Integrity Violations',
+              description: 'FDA cites Novartis manufacturing facility for significant data integrity violations and inadequate quality control systems.',
               link: '#',
               pubDate: new Date().toISOString(),
-              author: 'RAPS Staff',
+              author: 'FDA',
               category: 'regulatory',
-              extractedInfo: { type: 'regulatory_guidance', relevance: 'high', regulatoryAgencies: ['FDA'], compliance: true },
+              extractedInfo: { type: 'warning_letter', relevance: 'high', regulatoryAgencies: ['FDA'], compliance: true, companies: ['novartis'], severity: 'high' },
+              relevance: 'high'
+            },
+            {
+              title: 'FDA Initiates Drug Recall for Contaminated Blood Pressure Medication',
+              description: 'FDA announces Class I recall of blood pressure medication due to contamination with carcinogenic substances.',
+              link: '#',
+              pubDate: new Date(Date.now() - 600000).toISOString(),
+              author: 'FDA',
+              category: 'regulatory',
+              extractedInfo: { type: 'drug_recall', relevance: 'high', regulatoryAgencies: ['FDA'], severity: 'critical' },
+              relevance: 'high'
+            },
+            {
+              title: 'FDA Suspends Clinical Trial After Serious Adverse Events',
+              description: 'FDA places clinical hold on Phase 2 oncology trial following reports of serious adverse events in multiple patients.',
+              link: '#',
+              pubDate: new Date(Date.now() - 1200000).toISOString(),
+              author: 'FDA',
+              category: 'regulatory',
+              extractedInfo: { type: 'clinical_hold', relevance: 'high', regulatoryAgencies: ['FDA'], severity: 'high' },
               relevance: 'high'
             }
           ]
