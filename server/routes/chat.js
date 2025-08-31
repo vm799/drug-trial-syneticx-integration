@@ -2,53 +2,153 @@
 import express from "express";
 import Coordinator from "../agents/Coordinator.js";
 import OpenAI from "openai";
+import HuggingFaceService from "../services/huggingfaceService.js";
+import logger from "../utils/logger.js";
 
 const router = express.Router();
 
-// Lazy initialize OpenAI and coordinator to ensure env vars are loaded
+// Initialize services and coordinator
 let openai = null;
 let coordinator = null;
+let huggingFaceService = null;
 
 const initializeAI = () => {
-  if (!openai) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY environment variable is not set');
+  if (!coordinator) {
+    // Initialize OpenAI if available
+    if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your-openai-api-key-here') {
+      openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      logger.info('🤖 OpenAI initialized');
+    } else {
+      logger.warn('🤖 OpenAI not configured, using demo mode');
     }
-    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // Initialize Hugging Face service
+    huggingFaceService = new HuggingFaceService();
+    
+    // Initialize coordinator with enhanced capabilities
     coordinator = new Coordinator(openai);
+    
+    logger.info('🎯 Enhanced AI system initialized');
   }
   return coordinator;
 };
 
 router.post("/", async (req, res) => {
   try {
-    const { query, context } = req.body;
+    const { query, context = {} } = req.body;
     
-    // Check if OpenAI is configured, if not return demo response
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-openai-api-key-here') {
-      return res.json({
-        ...createDemoResponse(query),
-        systemNotice: {
-          type: 'info',
-          title: 'System Information',
-          message: 'Apologies, the AI databases may need some assistance as the external research APIs are currently experiencing connectivity issues. Please speak to the admin team for full AI functionality. Currently showing demo research data for your query.'
-        }
+    if (!query || !query.trim()) {
+      return res.status(400).json({
+        error: 'Query is required',
+        message: 'Please provide a research query'
+      });
+    }
+
+    logger.info(`🎯 Received query: "${query}"`);
+    
+    // Initialize the enhanced AI system
+    const coord = initializeAI();
+    
+    // Add metadata to context
+    const enhancedContext = {
+      ...context,
+      requestId: Math.random().toString(36).substring(7),
+      timestamp: new Date().toISOString(),
+      userAgent: req.headers['user-agent'],
+      sessionId: context.sessionId || 'anonymous'
+    };
+    
+    // Process query through enhanced multi-agent system
+    const results = await coord.handleUserQuery(query, enhancedContext);
+    
+    // Add system notices based on configuration status
+    const systemNotices = [];
+    
+    if (!results.metadata.systemStatus.huggingFace.configured) {
+      systemNotices.push({
+        type: 'info',
+        title: 'Enhanced AI Available',
+        message: 'Configure HUGGINGFACE_API_KEY for advanced medical NLP and entity extraction capabilities.'
       });
     }
     
-    const coord = initializeAI();
-    const results = await coord.handleUserQuery(query, context);
-    res.json(results);
+    if (!results.metadata.systemStatus.openAI.configured) {
+      systemNotices.push({
+        type: 'info', 
+        title: 'Demo Mode Active',
+        message: 'Currently using demo data. Configure OpenAI API key for live pharmaceutical intelligence.'
+      });
+    }
+    
+    // Format response for frontend
+    const response = {
+      // Core research data
+      researchInsights: results.researchInsights,
+      trialMatches: results.trialMatches,
+      explanation: results.explanation,
+      
+      // Enhanced AI analysis
+      hfAnalysis: results.hfAnalysis,
+      queryAnalysis: results.queryAnalysis,
+      
+      // Additional insights from specialized agents
+      competitiveIntelligence: results.competitiveIntelligence,
+      investmentAnalysis: results.investmentAnalysis,
+      
+      // System metadata and notices
+      metadata: results.metadata,
+      systemNotices: systemNotices.length > 0 ? systemNotices : null,
+      
+      // Success indicators
+      success: true,
+      processed_at: new Date().toISOString()
+    };
+
+    logger.info(`🎯 Query processed successfully: ${results.metadata.processingTime}ms`);
+    res.json(response);
+    
   } catch (err) {
-    console.error('Chat route error:', err);
-    // Return professional error message with fallback demo data
+    logger.error('🎯 Chat route error:', err);
+    
+    // Return enhanced fallback response with real API status
+    const coord = initializeAI();
+    const fallbackResponse = coord.generateEnhancedFallback(
+      req.body.query || 'pharmaceutical research', 
+      req.body.context || {}, 
+      err.message
+    );
+    
     res.json({
-      ...createDemoResponse(req.body.query || 'medical query'),
-      systemNotice: {
-        type: 'info',
-        title: 'System Information',
-        message: 'Apologies, the AI databases may need some assistance as the external research APIs are currently experiencing connectivity issues. Please speak to the admin team for full AI functionality. Currently showing demo research data for your query.'
-      }
+      ...fallbackResponse,
+      systemNotices: [{
+        type: 'warning',
+        title: 'Temporary Service Issue',
+        message: 'The AI system encountered a temporary issue. Showing enhanced demo data while services recover.'
+      }],
+      success: false,
+      error: 'Service temporarily unavailable',
+      processed_at: new Date().toISOString()
+    });
+  }
+});
+
+// Add metrics endpoint
+router.get("/metrics", async (req, res) => {
+  try {
+    const coord = initializeAI();
+    const metrics = coord.getMetrics();
+    
+    res.json({
+      success: true,
+      metrics: metrics,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('🎯 Metrics endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Unable to retrieve metrics',
+      message: error.message
     });
   }
 });

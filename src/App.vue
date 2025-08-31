@@ -138,56 +138,63 @@
         <div class="p-6 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">Key Metrics</h3>
           <div class="space-y-4">
-            <!-- Critical Patents Metric -->
-            <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+            <!-- AI System Status Metric -->
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-black">Critical Risk Patents</span>
-                <span class="text-2xl font-bold text-black">{{ metrics.criticalPatents }}</span>
+                <span class="text-sm font-medium text-black">AI System Status</span>
+                <span class="text-lg font-bold text-black">{{ getSystemStatusDisplay() }}</span>
               </div>
               <p class="text-xs text-black leading-relaxed">
-                Patents expiring within 12 months with &gt;$500M revenue impact. 
-                <strong>Requires immediate attention</strong> for lifecycle management strategies.
+                <strong>Hugging Face:</strong> {{ metrics.systemStatus.huggingFace.status }}<br>
+                <strong>OpenAI:</strong> {{ metrics.systemStatus.openAI.status }}<br>
+                <strong>Free APIs:</strong> {{ Object.values(metrics.systemStatus.freeApis).filter(Boolean).length }}/3 connected
+              </p>
+              <div class="mt-2 flex items-center text-xs">
+                <span :class="getSystemStatusColor()" class="w-2 h-2 rounded-full mr-2"></span>
+                <span class="text-black">{{ getSystemStatusMessage() }}</span>
+              </div>
+            </div>
+
+            <!-- Query Processing Metrics -->
+            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-black">Query Processing</span>
+                <span class="text-2xl font-bold text-black">{{ metrics.processingMetrics.totalQueries }}</span>
+              </div>
+              <p class="text-xs text-black leading-relaxed">
+                <strong>Avg Response Time:</strong> {{ metrics.processingMetrics.avgProcessingTime }}ms<br>
+                <strong>Success Rate:</strong> {{ (metrics.processingMetrics.successRate * 100).toFixed(1) }}%<br>
+                <strong>Multi-agent orchestration</strong> with real-time API integration
+              </p>
+            </div>
+
+            <!-- Data Source Status -->
+            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-black">Data Sources</span>
+                <span class="text-2xl font-bold text-black">{{ getConnectedSourcesCount() }}/6</span>
+              </div>
+              <p class="text-xs text-black leading-relaxed">
+                <strong>Live APIs:</strong> PubMed, ClinicalTrials.gov, FDA<br>
+                <strong>AI Models:</strong> BioBERT, ClinicalBERT<br>
+                <strong>Demo fallback</strong> when sources unavailable
+              </p>
+            </div>
+
+            <!-- Agent Performance -->
+            <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-black">Agent Performance</span>
+                <span class="text-xl font-bold text-black">{{ getAgentPerformanceScore() }}%</span>
+              </div>
+              <p class="text-xs text-black leading-relaxed">
+                Multi-agent system with query triaging, research analysis, and trial matching. 
+                <strong>Enhanced intelligence</strong> through specialized agents.
               </p>
               <div class="mt-2 flex items-center text-xs">
                 <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                <span class="text-black">Data validated 2hrs ago</span>
+                <span class="text-black">{{ isUsingDemoData() ? 'Demo mode active' : 'Live data processing' }}</span>
               </div>
-            </div>
-
-            <!-- High Risk Patents -->
-            <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-black">High Risk Patents</span>
-                <span class="text-2xl font-bold text-black">{{ metrics.highRiskPatents }}</span>
-              </div>
-              <p class="text-xs text-black leading-relaxed">
-                Patents expiring in 12-24 months with significant revenue exposure. 
-                <strong>Strategic planning needed</strong> for market transition.
-              </p>
-            </div>
-
-            <!-- Market Opportunities -->
-            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-black">Market Opportunities</span>
-                <span class="text-2xl font-bold text-black">{{ metrics.opportunities }}</span>
-              </div>
-              <p class="text-xs text-black leading-relaxed">
-                Generic/biosimilar opportunities from competitor patent expiries. 
-                <strong>Revenue potential</strong> through strategic market entry.
-              </p>
-            </div>
-
-            <!-- Total Revenue Monitored -->
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-black">Revenue Monitored</span>
-                <span class="text-xl font-bold text-black">{{ formatCurrency(metrics.totalRevenue) }}</span>
-              </div>
-              <p class="text-xs text-black leading-relaxed">
-                Total pharmaceutical revenue under patent protection monitoring. 
-                <strong>Comprehensive coverage</strong> of market exposure.
-              </p>
             </div>
           </div>
         </div>
@@ -361,7 +368,8 @@
                     @keyup.enter.prevent="sendMessage"
                     rows="4"
                     placeholder="Ask about patent cliff analysis, competitive intelligence, or investment opportunities..."
-                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium placeholder-gray-500 bg-white resize-none"
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium placeholder-gray-500 bg-white resize-none"
+                    style="color: #000000 !important;"
                   ></textarea>
                   <button 
                     @click="sendMessage"
@@ -646,14 +654,25 @@ const systemStatus = ref('All Systems Operational')
 const chatMessage = ref('')
 
 
-// Enterprise Metrics
+// Enhanced Multi-Agent System Metrics
 const metrics = reactive({
   criticalPatents: 0,
   highRiskPatents: 0,
   opportunities: 0,
   totalRevenue: 0,
   totalPatents: 0,
-  competitors: 0
+  competitors: 0,
+  // New AI system metrics
+  systemStatus: {
+    huggingFace: { configured: false, status: 'demo' },
+    openAI: { configured: false, status: 'demo' },
+    freeApis: { pubmed: false, clinicalTrials: false, fda: false }
+  },
+  processingMetrics: {
+    totalQueries: 0,
+    avgProcessingTime: 0,
+    successRate: 0.95
+  }
 })
 
 // Latest Intelligence Alerts
@@ -806,8 +825,11 @@ const refreshAllData = async () => {
   
   isLoading.value = true
   try {
-    // Simulate refreshing all pharmaceutical intelligence data
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Load live system metrics
+    await loadSystemMetrics()
+    
+    // Simulate refreshing pharmaceutical intelligence data
+    await new Promise(resolve => setTimeout(resolve, 1500))
     
     // Update metrics with mock data
     metrics.criticalPatents = Math.floor(Math.random() * 5) + 1
@@ -817,7 +839,10 @@ const refreshAllData = async () => {
     metrics.totalPatents = Math.floor(Math.random() * 500) + 100
     metrics.competitors = Math.floor(Math.random() * 25) + 10
     
-    systemStatus.value = 'All Systems Operational'
+    // Increment processing metrics
+    metrics.processingMetrics.totalQueries += Math.floor(Math.random() * 5) + 1
+    
+    systemStatus.value = 'Multi-Agent System Operational'
   } catch (error) {
     console.error('Data refresh error:', error)
     systemStatus.value = 'System Issues Detected'
@@ -919,6 +944,9 @@ const loadInitialData = async () => {
     metrics.totalPatents = 247
     metrics.competitors = 18
     
+    // Load live system status
+    await loadSystemMetrics()
+    
     // Set up demo authentication for live API calls
     setupDemoAuth()
   } catch (error) {
@@ -926,18 +954,93 @@ const loadInitialData = async () => {
   }
 }
 
+// Enhanced system metrics functions
+const getSystemStatusDisplay = () => {
+  const hf = metrics.systemStatus.huggingFace.configured
+  const ai = metrics.systemStatus.openAI.configured
+  if (hf && ai) return '🚀 Live'
+  if (hf || ai) return '⚡ Hybrid'
+  return '🔧 Demo'
+}
+
+const getSystemStatusColor = () => {
+  const hf = metrics.systemStatus.huggingFace.configured
+  const ai = metrics.systemStatus.openAI.configured
+  if (hf && ai) return 'bg-green-500'
+  if (hf || ai) return 'bg-yellow-500'
+  return 'bg-orange-500'
+}
+
+const getSystemStatusMessage = () => {
+  const hf = metrics.systemStatus.huggingFace.configured
+  const ai = metrics.systemStatus.openAI.configured
+  if (hf && ai) return 'Full AI capabilities active'
+  if (hf || ai) return 'Partial AI capabilities'
+  return 'Demo mode - configure APIs for full features'
+}
+
+const getConnectedSourcesCount = () => {
+  const apis = Object.values(metrics.systemStatus.freeApis).filter(Boolean).length
+  const ai = metrics.systemStatus.huggingFace.configured ? 1 : 0
+  const openai = metrics.systemStatus.openAI.configured ? 1 : 0
+  return apis + ai + openai
+}
+
+const getAgentPerformanceScore = () => {
+  const base = 75 // Base demo performance
+  const hfBonus = metrics.systemStatus.huggingFace.configured ? 15 : 0
+  const aiBonus = metrics.systemStatus.openAI.configured ? 10 : 0
+  return Math.min(100, base + hfBonus + aiBonus)
+}
+
+const isUsingDemoData = () => {
+  return !metrics.systemStatus.huggingFace.configured && !metrics.systemStatus.openAI.configured
+}
+
+const loadSystemMetrics = async () => {
+  try {
+    const currentHost = window.location.hostname
+    const currentProtocol = window.location.protocol
+    const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
+      'http://localhost:3001' : 
+      `${currentProtocol}//${currentHost}`
+    
+    const response = await fetch(`${backendUrl}/api/chat/metrics`)
+    if (response.ok) {
+      const data = await response.json()
+      console.log('System metrics loaded:', data)
+      
+      // Update system status from live metrics
+      if (data.metrics) {
+        metrics.systemStatus = data.metrics.systemStatus || metrics.systemStatus
+        metrics.processingMetrics = data.metrics.processingMetrics || metrics.processingMetrics
+      }
+    } else {
+      console.log('Metrics endpoint not available, using demo data')
+    }
+  } catch (error) {
+    console.log('Failed to load live metrics, using demo data:', error.message)
+  }
+}
+
 // Expose demo functions globally for testing
 window.runKnowledgeGraphDemo = runKnowledgeGraphDemo
 window.setupDemoAuth = setupDemoAuth
+window.loadSystemMetrics = loadSystemMetrics
 
 
 // Lifecycle
 onMounted(async () => {
   checkSystemStatus()
   loadInitialData()
-  console.log('🚀 Competitive Medical Intelligence AI Platform Loaded')
+  
+  // Set up periodic metrics refresh
+  setInterval(loadSystemMetrics, 30000) // Refresh every 30 seconds
+  
+  console.log('🚀 Enhanced Multi-Agent Medical Intelligence Platform Loaded')
   console.log('🔬 Run window.runKnowledgeGraphDemo() to test multi-agent system')
   console.log('🔐 Run window.setupDemoAuth() to configure API authentication')
+  console.log('📊 Run window.loadSystemMetrics() to refresh system status')
 })
 </script>
 
