@@ -112,8 +112,8 @@
             class="px-8 py-3 text-sm font-semibold rounded-t-lg border-2 border-b-0 whitespace-nowrap transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
             <span class="flex items-center space-x-2">
-              <span class="text-lg">📰</span>
-              <span>Industry News</span>
+              <span class="text-lg">🎯</span>
+              <span>Lead Generation</span>
             </span>
           </button>
           <button 
@@ -541,25 +541,25 @@
           <ResearchInsights />
         </div>
 
-        <!-- RSS News Feed Tab -->
+        <!-- Pharma Lead Generation Tab -->
         <div v-if="activeTab === 'news'" class="space-y-8">
-          <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl p-8 text-white">
-            <h2 class="text-3xl font-bold mb-3">📰 Industry News & Updates</h2>
-            <p class="text-indigo-100 text-lg mb-4">
-              Real-time pharmaceutical, patent, and clinical trial news from leading industry sources. 
-              Stay informed with the latest developments in drug development, regulatory updates, and market intelligence.
+          <div class="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white">
+            <h2 class="text-3xl font-bold mb-3">🎯 Pharma Lead Generation Dashboard</h2>
+            <p class="text-red-100 text-lg mb-4">
+              Real-time triggers for medical research platform outreach. Identify opportunities from 
+              FDA warning letters, failed trials, patent cliffs, and regulatory enforcement actions.
             </p>
-            <div class="bg-indigo-800/30 rounded-lg p-4 mt-6">
-              <h4 class="font-semibold mb-2">News Sources:</h4>
-              <ul class="text-indigo-100 text-sm space-y-1">
-                <li>• FiercePharma, PharmaTimes, BioSpace - Industry updates</li>
-                <li>• IPWatchdog, Managing IP - Patent & IP news</li>
-                <li>• ClinicalTrials.gov, Nature Medicine - Research breakthroughs</li>
-                <li>• Seeking Alpha, MarketWatch - Financial & market analysis</li>
+            <div class="bg-red-800/30 rounded-lg p-4 mt-6">
+              <h4 class="font-semibold mb-2">Lead Generation Triggers:</h4>
+              <ul class="text-red-100 text-sm space-y-1">
+                <li>• FDA Warning Letters & 483 Observations - Compliance opportunities</li>
+                <li>• Failed Clinical Trials & Study Suspensions - Data management needs</li>
+                <li>• Drug Recalls & Safety Alerts - Quality system improvements</li>
+                <li>• Patent Expiries & IP Challenges - Competitive intelligence services</li>
               </ul>
             </div>
           </div>
-          <RSSNewsFeed />
+          <PharmaLeadGeneration />
         </div>
 
         <!-- Data Management Tab -->
@@ -583,11 +583,6 @@
           <DataManagement />
         </div>
 
-        <!-- Breaking News Ticker -->
-        <BreakingNewsTicker 
-          :news="newsItems" 
-          @navigate-to-news="navigateToNews"
-        />
       </main>
     </div>
 
@@ -639,8 +634,7 @@ import InvestmentResearch from './components/InvestmentResearch.vue'
 import USPTOIntegration from './components/USPTOIntegration.vue'
 import ExecutiveReport from './components/ExecutiveReport.vue'
 import ResearchInsights from './components/ResearchInsights.vue'
-import RSSNewsFeed from './components/RSSNewsFeed.vue'
-import BreakingNewsTicker from './components/BreakingNewsTicker.vue'
+import PharmaLeadGeneration from './components/PharmaLeadGeneration.vue'
 import DataManagement from './components/DataManagement.vue'
 import apiService from './services/api'
 import { formatCurrency, formatLargeNumber } from './utils/formatters'
@@ -651,10 +645,6 @@ const isLoading = ref(false)
 const systemStatus = ref('All Systems Operational')
 const chatMessage = ref('')
 
-// News State
-const newsItems = ref([])
-const newsLoading = ref(false)
-const newsError = ref(null)
 
 // Enterprise Metrics
 const metrics = reactive({
@@ -940,95 +930,9 @@ const loadInitialData = async () => {
 window.runKnowledgeGraphDemo = runKnowledgeGraphDemo
 window.setupDemoAuth = setupDemoAuth
 
-// Load RSS news feeds
-const loadNewsFeeds = async () => {
-  newsLoading.value = true
-  newsError.value = null
-  
-  try {
-    const currentHost = window.location.hostname
-    const currentProtocol = window.location.protocol
-    const backendUrl = currentHost === 'localhost' || currentHost === '127.0.0.1' ? 
-      'http://localhost:3001' : 
-      `${currentProtocol}//${currentHost}`
-    
-    console.log('Loading RSS feeds from:', `${backendUrl}/api/rss-feeds/all`)
-    
-    const response = await fetch(`${backendUrl}/api/rss-feeds/all?limit=50`)
-    const data = await response.json()
-    
-    console.log('RSS Response:', data)
-    
-    if (data.success) {
-      // Flatten all categories into single array for ticker
-      const allItems = []
-      Object.values(data.data).forEach(categoryFeeds => {
-        if (Array.isArray(categoryFeeds)) {
-          categoryFeeds.forEach(feed => {
-            if (feed.items && Array.isArray(feed.items)) {
-              feed.items.forEach(item => {
-                if (item && item.title) {
-                  allItems.push({
-                    ...item,
-                    id: `${feed.source}-${item.title}`.replace(/\s+/g, '-').toLowerCase(),
-                    feedSource: feed.source,
-                    feedCategory: feed.category
-                  })
-                }
-              })
-            }
-          })
-        }
-      })
-      
-      newsItems.value = allItems
-      console.log(`Loaded ${allItems.length} news items`)
-    } else {
-      throw new Error(data.error || 'Failed to load news')
-    }
-  } catch (err) {
-    newsError.value = err.message
-    console.error('Error loading RSS feeds:', err)
-    // Set fallback demo news
-    newsItems.value = [
-      {
-        id: 'demo-1',
-        title: 'FDA Approves New Alzheimer\'s Treatment',
-        description: 'Breakthrough therapy shows promising results in clinical trials',
-        link: '#',
-        pubDate: new Date().toISOString(),
-        feedSource: 'Demo News',
-        feedCategory: 'pharmaceutical'
-      },
-      {
-        id: 'demo-2', 
-        title: 'Patent Cliff Warning for Major Diabetes Drug',
-        description: 'Blockbuster medication faces generic competition next year',
-        link: '#',
-        pubDate: new Date().toISOString(),
-        feedSource: 'Demo News',
-        feedCategory: 'patents'
-      }
-    ]
-  } finally {
-    newsLoading.value = false
-  }
-}
-
-// Navigate to news tab from ticker
-const navigateToNews = () => {
-  activeTab.value = 'news'
-}
 
 // Lifecycle
 onMounted(async () => {
-  await loadNewsFeeds()
-  
-  // Refresh news every 30 minutes
-  setInterval(() => {
-    loadNewsFeeds()
-  }, 30 * 60 * 1000)
-
   checkSystemStatus()
   loadInitialData()
   console.log('🚀 Competitive Medical Intelligence AI Platform Loaded')
